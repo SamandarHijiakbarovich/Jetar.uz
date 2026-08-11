@@ -1,0 +1,36 @@
+# ── .NET ────────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.csproj.user
+
+# ── Node ────────────────────────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# ── Maxfiy ma'lumotlar ──────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+appsettings.Production.json
+appsettings.Local.json
+
+# ── Yuklangan fayllar ───────────────────────────────────────────────────
+backend/src/Jetar.API/wwwroot/uploads/
+
+# ── Loglar va vaqtinchalik fayllar ──────────────────────────────────────
+*.log
+npm-debug.log*
+logs/
+.DS_Store
+Thumbs.db
+
+# ── IDE ─────────────────────────────────────────────────────────────────
+.idea/
+*.swp
+.vscode/*
+!.vscode/extensions.json

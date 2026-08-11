@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply m-0 bg-ink text-white;
+    min-height: 100%;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    overflow-x: hidden;
+
+    /* Telefonda burchak/notch ostiga tushib qolmaslik uchun. */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+
+    /* iOS: gorizontal "rezina" effektini o'chiradi. */
+    overscroll-behavior-x: none;
+
+    /* Android/iOS: bosishda kulrang yaltirash chiqmasin. */
+    -webkit-tap-highlight-color: transparent;
+
+    /* Ekran burilganda shrift o'zi kattalashib ketmasin. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Sensorli ekranda 300 ms kechikishni olib tashlaydi. */
+  button,
+  a,
+  [role='button'],
+  [role='switch'] {
+    touch-action: manipulation;
+  }
+
+  ::selection {
+    @apply bg-brand text-white;
+  }
+
+  /* Aylantirish paneli — dizayndagi to'q fon bilan uyg'un */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0b0b14;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a48;
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a3a5e;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply font-sans;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-dim;
+  }
+
+  /* Gorizontal aylantiriladigan qatorlarda panelni yashiramiz. */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+}
+
+@layer components {
+  /* Kartochka — dizayndagi #16162A + 8% oq chegara */
+  .card {
+    @apply rounded-card border border-white/[.08] bg-surface;
+  }
+
+  .card-hover {
+    @apply transition-transform duration-200;
+  }
+  /* Hover effekti faqat sichqoncha bor qurilmalarda — telefonda "yopishib" qolmaydi. */
+  @media (hover: hover) {
+    .card-hover:hover {
+      @apply -translate-y-1.5 border-brand/40 shadow-card-lg;
+    }
+  }
+
+  .field {
+    @apply w-full rounded-[11px] border border-white/[.12] bg-field px-[15px] py-[13px] text-[15px]
+           text-white outline-none transition-colors;
+  }
+  .field:focus {
+    @apply border-brand;
+  }
+
+  .btn-primary {
+    @apply rounded-[14px] border-none bg-gradient-to-br from-brand to-brand-500 font-display
+           font-bold text-white shadow-brand-sm transition-[filter,transform] duration-150;
+  }
+  @media (hover: hover) {
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+  }
+  .btn-primary:active:not(:disabled) {
+    @apply scale-[.98];
+  }
+  .btn-primary:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .btn-ghost {
+    @apply rounded-[14px] border border-white/[.16] bg-transparent font-semibold text-white
+           transition-colors duration-150;
+  }
+  @media (hover: hover) {
+    .btn-ghost:hover:not(:disabled) {
+      @apply border-brand text-brand;
+    }
+  }
+  .btn-ghost:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .label-caps {
+    @apply text-xs font-bold tracking-[.09em] text-dim;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-[9px] px-[13px] py-1.5 text-[13px] font-semibold;
+  }
+
+  /* Sahifa konteyneri — telefonda chekka bo'shliq kichikroq. */
+  .page {
+    @apply mx-auto w-full max-w-[1200px] px-4 sm:px-6;
+  }
+
+  /* Ekran pastiga yopishadigan panel (mobil harakat paneli). */
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+  }
+
+  /*
+   * iOS Safari 16 px dan kichik shriftli maydonga bosilganda sahifani
+   * avtomatik kattalashtiradi. Telefonda barcha kirituvlar 16 px bo'ladi.
+   * Selektor ataylab yuqori xoslikka ega — utilitalardagi text-sm ni ham bosadi.
+   */
+  @media (max-width: 767px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='file']),
+    select:not([multiple]),
+    textarea:not([readonly]) {
+      font-size: 16px;
+    }
+  }
+
+  /* Sensorli qurilmada bosish maydoni kamida 44 px bo'lsin. */
+  @media (pointer: coarse) {
+    .tap-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+}
+
+/* Reduced motion — animatsiyalarni o'chiradi */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

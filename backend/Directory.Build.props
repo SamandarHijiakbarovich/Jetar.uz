@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <EfCoreVersion>9.0.10</EfCoreVersion>
+  </PropertyGroup>
+</Project>
