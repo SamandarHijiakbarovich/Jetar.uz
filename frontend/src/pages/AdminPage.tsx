@@ -7,6 +7,9 @@ import { ApiError, api } from '../lib/api'
 import { money, shortDate } from '../lib/format'
 import { TRANSACTION_TONES } from '../lib/status'
 import type { AdminDisputeRow, AdminStats, AdminTransactionRow, PlatformSettings } from '../lib/types'
+import AdminUsers from './AdminUsers'
+
+type AdminTab = 'dashboard' | 'users'
 
 export default function AdminPage() {
   const { user } = useAuth()
@@ -18,6 +21,7 @@ export default function AdminPage() {
   const [settings, setSettings] = useState<PlatformSettings | null>(null)
   const [search, setSearch] = useState('')
   const [resolving, setResolving] = useState<string | null>(null)
+  const [tab, setTab] = useState<AdminTab>('dashboard')
 
   const load = useCallback(
     async (term?: string) => {
@@ -61,39 +65,62 @@ export default function AdminPage() {
 
   return (
     <div className="page pb-24 pt-11">
-      <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <div>
-          <h1 className="m-0 mb-1.5 font-display text-[clamp(24px,6vw,32px)] font-bold tracking-[-.02em]">
-            Admin panel
-          </h1>
-          <p className="m-0 text-sm text-muted sm:text-[15px]">
-            Moderator: @{user?.username} · {stats.activeListings} aktiv e'lon, {stats.pendingListings} tekshiruvda
-          </p>
-        </div>
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            load(search || undefined)
-          }}
-          className="flex gap-2.5"
-        >
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Qidirish..."
-            className="field !py-2.5 text-sm sm:w-[220px]"
-            aria-label="Bitimlar bo'yicha qidiruv"
-            type="search"
-          />
-          <button
-            type="submit"
-            className="tap-target flex-shrink-0 rounded-[11px] bg-brand px-5 py-2.5 text-sm font-semibold text-white"
-          >
-            Qidirish
-          </button>
-        </form>
+      <div className="mb-5">
+        <h1 className="m-0 mb-1.5 font-display text-[clamp(24px,6vw,32px)] font-bold tracking-[-.02em]">
+          Admin panel
+        </h1>
+        <p className="m-0 text-sm text-muted sm:text-[15px]">
+          {user?.role === 'Admin' ? 'Administrator' : 'Moderator'}: @{user?.username} · {stats.activeListings} aktiv
+          e'lon, {stats.pendingListings} tekshiruvda
+        </p>
       </div>
+
+      {/* ── Tablar ───────────────────────────────────────────────────── */}
+      <div className="mb-7 flex gap-1 border-b border-white/[.08]">
+        {(
+          [
+            ['dashboard', 'Boshqaruv paneli'],
+            ['users', 'Foydalanuvchilar'],
+          ] as [AdminTab, string][]
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
+              tab === key ? 'border-brand text-white' : 'border-transparent text-muted hover:text-white'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'users' && <AdminUsers />}
+
+      {tab === 'dashboard' && (
+        <>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              load(search || undefined)
+            }}
+            className="mb-6 flex gap-2.5"
+          >
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Bitim qidirish..."
+              className="field !py-2.5 text-sm sm:w-[240px]"
+              aria-label="Bitimlar bo'yicha qidiruv"
+              type="search"
+            />
+            <button
+              type="submit"
+              className="tap-target flex-shrink-0 rounded-[11px] bg-brand px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              Qidirish
+            </button>
+          </form>
 
       {/* ── Ko'rsatkichlar ───────────────────────────────────────────── */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-[18px] lg:grid-cols-4">
@@ -242,9 +269,11 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <p className="mt-8 text-center text-xs text-dim">
-        Oxirgi yangilanish: {shortDate(new Date().toISOString())}
-      </p>
+          <p className="mt-8 text-center text-xs text-dim">
+            Oxirgi yangilanish: {shortDate(new Date().toISOString())}
+          </p>
+        </>
+      )}
     </div>
   )
 }

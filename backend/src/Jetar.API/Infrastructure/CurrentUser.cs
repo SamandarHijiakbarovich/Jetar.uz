@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Jetar.Core.Common;
-using Jetar.Core.Enums;
-using Jetar.Core.Interfaces;
+using Jetar.Domain.Common;
+using Jetar.Domain.Enums;
+using Jetar.Application.Interfaces;
 
 namespace Jetar.API.Infrastructure;
 

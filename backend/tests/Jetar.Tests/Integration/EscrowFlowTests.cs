@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using Jetar.Core.Common;
-using Jetar.Core.Contracts;
-using Jetar.Core.Enums;
+using Jetar.Domain.Common;
+using Jetar.Application.Contracts;
+using Jetar.Domain.Enums;
 
 namespace Jetar.Tests.Integration;
 

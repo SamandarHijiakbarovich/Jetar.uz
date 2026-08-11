@@ -1,4 +1,4 @@
-using Jetar.Core.Entities;
+using Jetar.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

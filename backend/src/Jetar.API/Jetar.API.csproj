@@ -13,7 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Jetar.Core\Jetar.Core.csproj" />
+    <ProjectReference Include="..\Jetar.Domain\Jetar.Domain.csproj" />
+    <ProjectReference Include="..\Jetar.Application\Jetar.Application.csproj" />
     <ProjectReference Include="..\Jetar.Infrastructure\Jetar.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { mediaUrl } from '../lib/media'
 import type { ListingType } from '../lib/types'
 
@@ -36,6 +37,7 @@ export default function GameArt({
   seed,
   type = 'Account',
   image,
+  gameImage,
   size = 'md',
   eager = false,
   className = '',
@@ -45,14 +47,19 @@ export default function GameArt({
   color: string
   seed: string
   type?: ListingType
+  /** E'lonning o'z rasmi (sotuvchi yuklagan skrinshot). */
   image?: string | null
+  /** O'yin muqovasi (hero) — e'lonning o'z rasmi bo'lmaganda ishlatiladi. */
+  gameImage?: string | null
   size?: 'sm' | 'md' | 'lg'
   /** Muqova ekranning yuqorisida bo'lsa (e'lon sahifasi) darhol yuklanadi. */
   eager?: boolean
   className?: string
   children?: React.ReactNode
 }) {
-  const resolved = mediaUrl(image)
+  // Rasm yuklanmasa (masalan o'yin muqovasi hali qo'yilmagan) generativ san'atga qaytamiz.
+  const [failed, setFailed] = useState(false)
+  const resolved = failed ? undefined : mediaUrl(image) ?? gameImage ?? undefined
   const h = hashOf(seed)
 
   // Kompozitsiyani id bo'yicha siljitamiz — kartochkalar bir-biriga o'xshamaydi.
@@ -75,6 +82,7 @@ export default function GameArt({
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
           loading={eager ? 'eager' : 'lazy'}
+          onError={() => setFailed(true)}
         />
       ) : (
         <>

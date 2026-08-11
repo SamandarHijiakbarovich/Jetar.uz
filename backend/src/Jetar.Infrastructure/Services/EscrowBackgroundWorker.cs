@@ -1,4 +1,4 @@
-using Jetar.Core.Interfaces;
+using Jetar.Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

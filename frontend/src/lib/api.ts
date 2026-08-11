@@ -2,6 +2,7 @@ import type {
   AdminDisputeRow,
   AdminStats,
   AdminTransactionRow,
+  AdminUserRow,
   AuthResponse,
   Categories,
   GameSummary,
@@ -17,6 +18,7 @@ import type {
   Rating,
   Transaction,
   User,
+  UserRole,
 } from './types'
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5080'
@@ -243,7 +245,10 @@ export const api = {
 
   payments: {
     methods: () =>
-      request<{ sandbox: boolean; methods: PaymentMethodOption[] }>('/api/payments/methods', { auth: false }),
+      request<{ sandbox: boolean; providerRedirect: boolean; methods: PaymentMethodOption[] }>(
+        '/api/payments/methods',
+        { auth: false },
+      ),
 
     create: (transactionId: string, method: PaymentMethod) =>
       request<Payment>('/api/payments', { method: 'POST', body: { transactionId, method } }),
@@ -319,7 +324,22 @@ export const api = {
     verifyListing: (id: string, verified = true) =>
       request<void>(`/api/admin/listings/${id}/verify${qs({ verified })}`, { method: 'POST' }),
 
+    users: (params: {
+      search?: string
+      role?: UserRole
+      blocked?: boolean
+      verified?: boolean
+      page?: number
+      pageSize?: number
+    } = {}) => request<Paged<AdminUserRow>>(`/api/admin/users${qs({ ...params })}`),
+
     blockUser: (id: string, blocked = true) =>
       request<void>(`/api/admin/users/${id}/block${qs({ blocked })}`, { method: 'POST' }),
+
+    verifyUser: (id: string, verified = true) =>
+      request<void>(`/api/admin/users/${id}/verify${qs({ verified })}`, { method: 'POST' }),
+
+    setUserRole: (id: string, role: UserRole) =>
+      request<void>(`/api/admin/users/${id}/role${qs({ role })}`, { method: 'POST' }),
   },
 }

@@ -22,6 +22,7 @@ export default function CheckoutPage() {
   const [tx, setTx] = useState<Transaction | null>(null)
   const [methods, setMethods] = useState<PaymentMethodOption[]>([])
   const [sandbox, setSandbox] = useState(false)
+  const [providerRedirect, setProviderRedirect] = useState(false)
   const [selected, setSelected] = useState<PaymentMethod>('Click')
   const [paying, setPaying] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,6 +36,7 @@ export default function CheckoutPage() {
         setTx(transaction)
         setMethods(payment.methods)
         setSandbox(payment.sandbox)
+        setProviderRedirect(payment.providerRedirect)
         if (payment.methods[0]) setSelected(payment.methods[0].key)
       })
       .catch((err) => alive && setError(err instanceof ApiError ? err.message : 'Bitim yuklanmadi.'))
@@ -51,8 +53,14 @@ export default function CheckoutPage() {
     try {
       const payment = await api.payments.create(tx.id, selected)
 
+      // Provayder redirect yoqilgan bo'lsa — Click/Payme/Uzum sahifasiga o'tamiz.
+      if (payment.checkoutUrl && (providerRedirect || !sandbox)) {
+        window.location.href = payment.checkoutUrl
+        return
+      }
+
       if (sandbox && payment.providerPaymentId) {
-        // Sandbox rejimida provayder sahifasi o'rniga to'lovni darhol tasdiqlaymiz.
+        // Sof sandbox (redirect'siz) rejimda to'lovni darhol tasdiqlaymiz — tez sinov uchun.
         await api.payments.sandboxConfirm(payment.providerPaymentId, true)
         toast.success("To'lov qabul qilindi — pul Escrow hisobida bloklandi.")
         navigate(`/transactions/${tx.id}`)
@@ -155,10 +163,17 @@ export default function CheckoutPage() {
             {paying ? <Spinner size={18} /> : "To'lovni amalga oshirish"}
           </button>
 
-          {sandbox && (
+          {providerRedirect ? (
             <p className="mt-3 text-center text-xs text-dim">
-              Sandbox rejimi: haqiqiy pul yechilmaydi, to'lov darhol tasdiqlanadi.
+              Demo rejimi: to'lov usulini tanlab, provayder sahifasiga o'tasiz. Merchant ID
+              ulangach jonli to'lov shu yo'l bilan ishlaydi.
             </p>
+          ) : (
+            sandbox && (
+              <p className="mt-3 text-center text-xs text-dim">
+                Sandbox rejimi: haqiqiy pul yechilmaydi, to'lov darhol tasdiqlanadi.
+              </p>
+            )
           )}
 
           <div className="mt-4">

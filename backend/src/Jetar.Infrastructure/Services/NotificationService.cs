@@ -1,9 +1,8 @@
 using System.Net.Http.Json;
-using Jetar.Core.Entities;
-using Jetar.Core.Interfaces;
-using Jetar.Core.Options;
-using Jetar.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using Jetar.Domain.Abstractions;
+using Jetar.Domain.Entities;
+using Jetar.Application.Interfaces;
+using Jetar.Application.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -15,18 +14,18 @@ namespace Jetar.Infrastructure.Services;
 /// </summary>
 public class NotificationService : INotificationService
 {
-    private readonly AppDbContext _db;
+    private readonly IUnitOfWork _uow;
     private readonly TelegramOptions _telegram;
     private readonly IHttpClientFactory _http;
     private readonly ILogger<NotificationService> _log;
 
     public NotificationService(
-        AppDbContext db,
+        IUnitOfWork uow,
         IOptions<TelegramOptions> telegram,
         IHttpClientFactory http,
         ILogger<NotificationService> log)
     {
-        _db = db;
+        _uow = uow;
         _telegram = telegram.Value;
         _http = http;
         _log = log;
@@ -34,7 +33,7 @@ public class NotificationService : INotificationService
 
     public async Task NotifyAsync(Guid userId, string title, string body, CancellationToken ct = default)
     {
-        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
+        var user = await _uow.Users.GetByIdAsync(userId, ct);
         if (user == null) return;
 
         _log.LogInformation("Bildirishnoma → {Username}: {Title} — {Body}", user.Username, title, body);

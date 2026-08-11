@@ -1,6 +1,9 @@
-using Jetar.Core.Interfaces;
-using Jetar.Core.Options;
+using Jetar.Domain.Abstractions;
+using Jetar.Application.Interfaces;
+using Jetar.Application.Options;
+using Jetar.Application.Services;
 using Jetar.Infrastructure.Data;
+using Jetar.Infrastructure.Data.Repositories;
 using Jetar.Infrastructure.External;
 using Jetar.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -47,10 +50,23 @@ public static class DependencyInjection
 
         services.AddHttpClient();
 
+        // ── Repository + Unit of Work ─────────────────────────────────────
+        services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+        services.AddScoped(typeof(IReadRepository<>), typeof(EfRepository<>));
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IListingRepository, ListingRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IRatingRepository, RatingRepository>();
+        services.AddScoped<IDisputeRepository, DisputeRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
         // ── Servislar ─────────────────────────────────────────────────────
         services.AddSingleton<IClock, SystemClock>();
 
         services.AddScoped<ITokenService, TokenService>();
+        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IListingService, ListingService>();
         services.AddScoped<ITransactionService, TransactionService>();
@@ -58,6 +74,7 @@ public static class DependencyInjection
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IRatingService, RatingService>();
+        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();

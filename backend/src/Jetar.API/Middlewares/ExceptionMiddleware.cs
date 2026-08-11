@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Jetar.Core.Common;
+using Jetar.Domain.Common;
 
 namespace Jetar.API.Middlewares;
 

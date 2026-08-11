@@ -1,7 +1,7 @@
 using FluentAssertions;
-using Jetar.Core.Common;
-using Jetar.Core.Contracts;
-using Jetar.Core.Enums;
+using Jetar.Domain.Common;
+using Jetar.Application.Contracts;
+using Jetar.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jetar.Tests;

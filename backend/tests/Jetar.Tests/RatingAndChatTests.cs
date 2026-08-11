@@ -1,7 +1,7 @@
 using FluentAssertions;
-using Jetar.Core.Common;
-using Jetar.Core.Contracts;
-using Jetar.Infrastructure.Services;
+using Jetar.Domain.Common;
+using Jetar.Application.Contracts;
+using Jetar.Application.Services;
 
 namespace Jetar.Tests;
 

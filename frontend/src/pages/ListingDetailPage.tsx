@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import GameArt from '../components/GameArt'
 import ListingCard from '../components/ListingCard'
+import { gameImage } from '../lib/games'
 import { Avatar, EscrowNote, PageLoader, Spinner, Stars } from '../components/ui'
 import { useAuth } from '../context/auth-context'
 import { useToast } from '../context/toast-context'
@@ -87,6 +88,7 @@ export default function ListingDetailPage() {
             seed={listing.id}
             type={listing.type}
             image={cover}
+            gameImage={gameImage(listing.gameType)}
             size="lg"
             className="mb-4 rounded-2xl border border-white/[.08] shadow-rim sm:mb-6 sm:rounded-[20px]"
           >

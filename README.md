@@ -132,26 +132,35 @@ Nizo bo'lsa:
 
 ## Loyiha strukturasi
 
+Backend **Clean Architecture** (4 qatlam) asosida qurilgan. Bog'liqliklar faqat
+ichkariga yo'naladi: `API → Infrastructure → Application → Domain`. Domen qatlami
+hech kimga bog'liq emas.
+
 ```
 jetar/
 ├── backend/
 │   ├── src/
-│   │   ├── Jetar.Core/              Domen: entity, enum, interfeys, DTO
-│   │   │   ├── Entities/            User, Listing, Transaction, Payment,
-│   │   │   │                        Message, Rating, Dispute
+│   │   ├── Jetar.Domain/            Yadro — hech qanday tashqi bog'liqlik yo'q
+│   │   │   ├── Entities/            User, Listing, Transaction, Payment, ...
 │   │   │   ├── Enums/               GameType, TransactionStatus, ...
+│   │   │   ├── Abstractions/        IRepository<T>, IUnitOfWork, ISpecification<T>
+│   │   │   ├── Specifications/      So'rov spetsifikatsiyalari (Ardalis uslubi)
+│   │   │   └── Common/              AppException, PagedResult, GameCatalog
+│   │   ├── Jetar.Application/       Biznes-mantiq (faqat Domain'ga bog'liq)
+│   │   │   ├── Services/            Escrow, Payment, Auth, Listing, Chat,
+│   │   │   │                        Rating, Admin, User — repository orqali
 │   │   │   ├── Contracts/           So'rov va javob DTO'lari
-│   │   │   ├── Interfaces/          IEscrowService, IPaymentService, ...
+│   │   │   ├── Interfaces/          IEscrowService, IPaymentGateway,
+│   │   │   │                        IPasswordHasher, ...
 │   │   │   └── Options/             Konfiguratsiya modellari
-│   │   ├── Jetar.Infrastructure/
-│   │   │   ├── Data/                AppDbContext, konfiguratsiyalar,
-│   │   │   │                        migratsiyalar, DbSeeder
-│   │   │   ├── Services/            EscrowService, PaymentService, Auth,
-│   │   │   │                        Chat, Rating, Admin, Notification
+│   │   ├── Jetar.Infrastructure/    Texnik detallar (Application + Domain)
+│   │   │   ├── Data/                AppDbContext, konfiguratsiya, migratsiya,
+│   │   │   │   └── Repositories/    EfRepository<T>, UnitOfWork, evaluator
+│   │   │   ├── Services/            Token, FileStorage, Notification,
+│   │   │   │                        BCryptPasswordHasher, fon vazifasi
 │   │   │   └── External/            Click, Payme, Uzum, Apelsin gateway'lari
 │   │   └── Jetar.API/
-│   │       ├── Controllers/         Auth, Listings, Transactions, Payments,
-│   │       │                        Chat, Users, Admin
+│   │       ├── Controllers/         Faqat servislarga bog'liq (DbContext'siz)
 │   │       ├── Hubs/                ChatHub (SignalR)
 │   │       ├── Middlewares/         Xatolarni bir shaklga keltirish
 │   │       └── Validators/          FluentValidation
@@ -165,6 +174,9 @@ jetar/
 ├── docs/                            Qo'shimcha hujjatlar
 └── docker-compose.yml
 ```
+
+**Qo'llanilgan pattern'lar:** Clean Architecture (4 qatlam) · Repository ·
+Unit of Work · Specification · Options · Dependency Injection.
 
 ---
 

@@ -57,3 +57,12 @@ export function gameBySlug(slug: string) {
 export function gameByType(type: GameType) {
   return GAMES.find((g) => g.type === type) ?? GAMES[0]
 }
+
+/**
+ * Har bir o'yin uchun muqova (hero) rasmi manzili.
+ * Rasm fayllari `public/games/<slug>.jpg` ga qo'yiladi (masalan efootball.jpg).
+ * Fayl bo'lmasa GameArt avtomatik generativ muqovaga qaytadi — sayt buzilmaydi.
+ */
+export function gameImage(type: GameType): string {
+  return `/games/${gameByType(type).slug}.jpg`
+}

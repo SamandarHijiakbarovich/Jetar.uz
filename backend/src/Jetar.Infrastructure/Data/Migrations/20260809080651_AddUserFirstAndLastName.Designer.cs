@@ -25,7 +25,7 @@ namespace Jetar.Infrastructure.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Jetar.Core.Entities.Dispute", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Dispute", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -78,7 +78,7 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.ToTable("disputes", (string)null);
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Listing", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Listing", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -164,7 +164,7 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.ToTable("listings", (string)null);
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Message", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Message", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -208,7 +208,7 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.ToTable("messages", (string)null);
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Payment", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -271,7 +271,7 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.ToTable("payments", (string)null);
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Rating", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Rating", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -308,7 +308,7 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.ToTable("ratings", (string)null);
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Transaction", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -397,7 +397,7 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.ToTable("transactions", (string)null);
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.User", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -501,22 +501,22 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Dispute", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Dispute", b =>
                 {
-                    b.HasOne("Jetar.Core.Entities.User", "OpenedBy")
+                    b.HasOne("Jetar.Domain.Entities.User", "OpenedBy")
                         .WithMany()
                         .HasForeignKey("OpenedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Jetar.Core.Entities.User", "ResolvedBy")
+                    b.HasOne("Jetar.Domain.Entities.User", "ResolvedBy")
                         .WithMany()
                         .HasForeignKey("ResolvedById")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Jetar.Core.Entities.Transaction", "Transaction")
+                    b.HasOne("Jetar.Domain.Entities.Transaction", "Transaction")
                         .WithOne("Dispute")
-                        .HasForeignKey("Jetar.Core.Entities.Dispute", "TransactionId")
+                        .HasForeignKey("Jetar.Domain.Entities.Dispute", "TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -527,9 +527,9 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.Navigation("Transaction");
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Listing", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Listing", b =>
                 {
-                    b.HasOne("Jetar.Core.Entities.User", "Seller")
+                    b.HasOne("Jetar.Domain.Entities.User", "Seller")
                         .WithMany("Listings")
                         .HasForeignKey("SellerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -538,21 +538,21 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.Navigation("Seller");
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Message", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Message", b =>
                 {
-                    b.HasOne("Jetar.Core.Entities.User", "Receiver")
+                    b.HasOne("Jetar.Domain.Entities.User", "Receiver")
                         .WithMany()
                         .HasForeignKey("ReceiverId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Jetar.Core.Entities.User", "Sender")
+                    b.HasOne("Jetar.Domain.Entities.User", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Jetar.Core.Entities.Transaction", "Transaction")
+                    b.HasOne("Jetar.Domain.Entities.Transaction", "Transaction")
                         .WithMany("Messages")
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -565,15 +565,15 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.Navigation("Transaction");
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Payment", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Payment", b =>
                 {
-                    b.HasOne("Jetar.Core.Entities.Transaction", "Transaction")
+                    b.HasOne("Jetar.Domain.Entities.Transaction", "Transaction")
                         .WithMany("Payments")
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Jetar.Core.Entities.User", "User")
+                    b.HasOne("Jetar.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -584,21 +584,21 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Rating", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Rating", b =>
                 {
-                    b.HasOne("Jetar.Core.Entities.User", "FromUser")
+                    b.HasOne("Jetar.Domain.Entities.User", "FromUser")
                         .WithMany()
                         .HasForeignKey("FromUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Jetar.Core.Entities.User", "ToUser")
+                    b.HasOne("Jetar.Domain.Entities.User", "ToUser")
                         .WithMany()
                         .HasForeignKey("ToUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Jetar.Core.Entities.Transaction", "Transaction")
+                    b.HasOne("Jetar.Domain.Entities.Transaction", "Transaction")
                         .WithMany("Ratings")
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -611,21 +611,21 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.Navigation("Transaction");
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Transaction", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Transaction", b =>
                 {
-                    b.HasOne("Jetar.Core.Entities.User", "Buyer")
+                    b.HasOne("Jetar.Domain.Entities.User", "Buyer")
                         .WithMany("Purchases")
                         .HasForeignKey("BuyerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Jetar.Core.Entities.Listing", "Listing")
+                    b.HasOne("Jetar.Domain.Entities.Listing", "Listing")
                         .WithMany("Transactions")
                         .HasForeignKey("ListingId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Jetar.Core.Entities.User", "Seller")
+                    b.HasOne("Jetar.Domain.Entities.User", "Seller")
                         .WithMany("Sales")
                         .HasForeignKey("SellerId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -638,12 +638,12 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.Navigation("Seller");
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Listing", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Listing", b =>
                 {
                     b.Navigation("Transactions");
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.Transaction", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.Transaction", b =>
                 {
                     b.Navigation("Dispute");
 
@@ -654,7 +654,7 @@ namespace Jetar.Infrastructure.Data.Migrations
                     b.Navigation("Ratings");
                 });
 
-            modelBuilder.Entity("Jetar.Core.Entities.User", b =>
+            modelBuilder.Entity("Jetar.Domain.Entities.User", b =>
                 {
                     b.Navigation("Listings");
 

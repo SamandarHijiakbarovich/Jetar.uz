@@ -1,6 +1,6 @@
-using Jetar.Core.Common;
-using Jetar.Core.Contracts;
-using Jetar.Core.Interfaces;
+using Jetar.Domain.Common;
+using Jetar.Application.Contracts;
+using Jetar.Application.Interfaces;
 using Jetar.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

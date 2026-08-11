@@ -1,6 +1,7 @@
-using Jetar.Core.Common;
-using Jetar.Core.Contracts;
-using Jetar.Core.Interfaces;
+using Jetar.Domain.Common;
+using Jetar.Domain.Enums;
+using Jetar.Application.Contracts;
+using Jetar.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -48,11 +49,38 @@ public class AdminController : ControllerBase
     public async Task<ActionResult<PlatformSettingsDto>> Settings(CancellationToken ct)
         => Ok(await _admin.GetSettingsAsync(ct));
 
+    [HttpGet("users")]
+    public async Task<ActionResult<PagedResult<AdminUserRowDto>>> Users(
+        [FromQuery] string? search,
+        [FromQuery] UserRole? role,
+        [FromQuery] bool? blocked,
+        [FromQuery] bool? verified,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+        => Ok(await _admin.GetUsersAsync(search, role, blocked, verified, page, pageSize, ct));
+
     [HttpPost("users/{id:guid}/block")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> BlockUser(Guid id, [FromQuery] bool blocked = true, CancellationToken ct = default)
     {
         await _admin.SetUserBlockedAsync(id, blocked, ct);
+        return NoContent();
+    }
+
+    [HttpPost("users/{id:guid}/verify")]
+    public async Task<IActionResult> VerifyUser(Guid id, [FromQuery] bool verified = true, CancellationToken ct = default)
+    {
+        await _admin.SetUserVerifiedAsync(id, verified, ct);
+        return NoContent();
+    }
+
+    /// <summary>Rol tayinlash (moderator qilish) — faqat admin.</summary>
+    [HttpPost("users/{id:guid}/role")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> SetUserRole(Guid id, [FromQuery] UserRole role, CancellationToken ct = default)
+    {
+        await _admin.SetUserRoleAsync(id, role, ct);
         return NoContent();
     }
 

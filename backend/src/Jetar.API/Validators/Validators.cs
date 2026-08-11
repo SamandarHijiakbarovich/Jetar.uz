@@ -1,5 +1,5 @@
 using FluentValidation;
-using Jetar.Core.Contracts;
+using Jetar.Application.Contracts;
 
 namespace Jetar.API.Validators;
 

@@ -1,9 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Jetar.Core.Entities;
-using Jetar.Core.Interfaces;
-using Jetar.Core.Options;
+using Jetar.Domain.Entities;
+using Jetar.Application.Interfaces;
+using Jetar.Application.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 

@@ -1,6 +1,6 @@
-using Jetar.Core.Common;
-using Jetar.Core.Interfaces;
-using Jetar.Core.Options;
+using Jetar.Domain.Common;
+using Jetar.Application.Interfaces;
+using Jetar.Application.Options;
 using Microsoft.Extensions.Options;
 
 namespace Jetar.Infrastructure.Services;

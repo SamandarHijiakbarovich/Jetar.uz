@@ -1,11 +1,11 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Jetar.Core.Contracts;
-using Jetar.Core.Entities;
-using Jetar.Core.Enums;
-using Jetar.Core.Interfaces;
-using Jetar.Core.Options;
+using Jetar.Application.Contracts;
+using Jetar.Domain.Entities;
+using Jetar.Domain.Enums;
+using Jetar.Application.Interfaces;
+using Jetar.Application.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -39,6 +39,16 @@ public abstract class PaymentGatewayBase : IPaymentGateway
             return Task.FromResult(new PaymentInitResult(false, "", null, $"{Method} hozircha o'chirilgan."));
 
         var providerPaymentId = $"{Method.ToString().ToLowerInvariant()}_{Guid.NewGuid():N}";
+
+        // Provayder sahifasiga yo'naltirish: sandbox bo'lsa ham checkout Click/Payme/Uzum
+        // sahifasiga o'tadi. Merchant ID qo'yilgach shu yo'l bilan jonli to'lov ishlaydi.
+        if (Options.ProviderRedirect)
+        {
+            var providerUrl = BuildLiveCheckoutUrl(payment, providerPaymentId);
+            Log.LogInformation("{Method} provayder sahifasiga yo'naltirildi {Id} summa={Amount}",
+                Method, providerPaymentId, payment.Amount);
+            return Task.FromResult(new PaymentInitResult(true, providerPaymentId, providerUrl, null));
+        }
 
         if (Options.SandboxMode)
         {

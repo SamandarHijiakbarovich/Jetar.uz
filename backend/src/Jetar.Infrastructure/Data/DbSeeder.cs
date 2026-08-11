@@ -1,5 +1,5 @@
-using Jetar.Core.Entities;
-using Jetar.Core.Enums;
+using Jetar.Domain.Entities;
+using Jetar.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

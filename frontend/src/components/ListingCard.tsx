@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { money } from '../lib/format'
+import { gameImage } from '../lib/games'
 import { LISTING_TONES } from '../lib/status'
 import type { ListingCard as ListingCardType } from '../lib/types'
 import GameArt from './GameArt'
@@ -44,6 +45,7 @@ export default function ListingCard({
         seed={listing.id}
         type={listing.type}
         image={listing.coverImage}
+        gameImage={gameImage(listing.gameType)}
         size={featured ? 'lg' : compact ? 'sm' : 'md'}
         className="transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.04]"
       >

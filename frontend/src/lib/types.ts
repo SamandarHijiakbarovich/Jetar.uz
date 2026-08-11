@@ -247,6 +247,21 @@ export interface AdminDisputeRow {
   createdAt: string
 }
 
+export interface AdminUserRow {
+  id: string
+  username: string
+  fullName: string
+  phone: string
+  role: UserRole
+  rating: number
+  ratingCount: number
+  totalSales: number
+  totalPurchases: number
+  isVerified: boolean
+  isBlocked: boolean
+  createdAt: string
+}
+
 export interface PlatformSettings {
   commissionRate: number
   autoReleaseHours: number

@@ -1,6 +1,6 @@
-using Jetar.Core.Contracts;
-using Jetar.Core.Interfaces;
-using Jetar.Infrastructure.Services;
+using Jetar.Application.Contracts;
+using Jetar.Application.Interfaces;
+using Jetar.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 

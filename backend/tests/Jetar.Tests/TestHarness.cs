@@ -1,10 +1,11 @@
-using Jetar.Core.Contracts;
-using Jetar.Core.Entities;
-using Jetar.Core.Enums;
-using Jetar.Core.Interfaces;
-using Jetar.Core.Options;
+using Jetar.Application.Contracts;
+using Jetar.Domain.Entities;
+using Jetar.Domain.Enums;
+using Jetar.Application.Interfaces;
+using Jetar.Application.Options;
+using Jetar.Application.Services;
 using Jetar.Infrastructure.Data;
-using Jetar.Infrastructure.Services;
+using Jetar.Infrastructure.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -56,12 +57,13 @@ public sealed class TestHarness : IDisposable
             .Options;
 
         Db = new AppDbContext(options);
+        var uow = new UnitOfWork(Db);
 
-        Chat = new ChatService(Db, Clock, new NullChatBroadcaster(), Notifications);
-        Ratings = new RatingService(Db, Clock);
+        Chat = new ChatService(uow, Clock, new NullChatBroadcaster(), Notifications);
+        Ratings = new RatingService(uow, Clock);
 
         Escrow = new EscrowService(
-            Db,
+            uow,
             Options.Create(Platform),
             Clock,
             Notifications,

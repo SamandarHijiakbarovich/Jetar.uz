@@ -1,9 +1,7 @@
-using Jetar.Core.Contracts;
-using Jetar.Core.Interfaces;
-using Jetar.Infrastructure.Data;
+using Jetar.Application.Contracts;
+using Jetar.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Jetar.API.Controllers;
 
@@ -13,13 +11,13 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
     private readonly ICurrentUser _user;
-    private readonly AppDbContext _db;
+    private readonly IUserService _users;
 
-    public AuthController(IAuthService auth, ICurrentUser user, AppDbContext db)
+    public AuthController(IAuthService auth, ICurrentUser user, IUserService users)
     {
         _auth = auth;
         _user = user;
-        _db = db;
+        _users = users;
     }
 
     /// <summary>Ro'yxatdan o'tish.</summary>
@@ -42,13 +40,12 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<ActionResult<UserDto>> Me(CancellationToken ct)
     {
-        var id = _user.RequireId();
-        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);
+        var user = await _users.GetByIdAsync(_user.RequireId(), ct);
 
         // Token yaroqli, lekin hisob o'chirilgan — klient uni chiqib ketgan deb qabul qilsin.
         return user == null
             ? Unauthorized(new { code = "unauthorized", message = "Hisob topilmadi. Qaytadan kiring." })
-            : Ok(Map(user));
+            : Ok(user);
     }
 
     [HttpPost("change-password")]
@@ -58,10 +55,4 @@ public class AuthController : ControllerBase
         await _auth.ChangePasswordAsync(_user.RequireId(), request, ct);
         return NoContent();
     }
-
-    internal static UserDto Map(Core.Entities.User u) => new(
-        u.Id, u.Username, u.FirstName, u.LastName, $"{u.FirstName} {u.LastName}".Trim(),
-        u.Phone, u.TelegramUsername, u.City, u.AvatarUrl,
-        u.Rating, u.RatingCount, u.TotalSales, u.TotalPurchases,
-        u.IsVerified, u.Role, u.AvgResponseMinutes, u.CreatedAt);
 }

@@ -73,6 +73,7 @@ services:
       JETAR_Platform__CommissionRate: ${COMMISSION_RATE:-0.08}
       JETAR_Platform__AutoReleaseHours: ${AUTO_RELEASE_HOURS:-72}
       JETAR_Payments__SandboxMode: ${PAYMENTS_SANDBOX:-true}
+      JETAR_Payments__ProviderRedirect: ${PAYMENTS_PROVIDER_REDIRECT:-true}
       JETAR_Payments__ReturnUrl: ${PAYMENT_RETURN_URL:-http://localhost:5173/checkout/result}
       JETAR_Payments__Click__MerchantId: ${CLICK_MERCHANT_ID:-}
       JETAR_Payments__Click__SecretKey: ${CLICK_SECRET_KEY:-}

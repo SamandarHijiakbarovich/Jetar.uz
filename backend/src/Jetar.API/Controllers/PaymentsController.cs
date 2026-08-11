@@ -1,7 +1,7 @@
-using Jetar.Core.Contracts;
-using Jetar.Core.Enums;
-using Jetar.Core.Interfaces;
-using Jetar.Core.Options;
+using Jetar.Application.Contracts;
+using Jetar.Domain.Enums;
+using Jetar.Application.Interfaces;
+using Jetar.Application.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -41,7 +41,12 @@ public class PaymentsController : ControllerBase
             new { key = nameof(PaymentMethod.Apelsin), name = "Apelsin",    brand = "#FF6B35", note = "Apelsin hamyoni",         enabled = _options.Apelsin.Enabled }
         };
 
-        return Ok(new { sandbox = _options.SandboxMode, methods = methods.Where(m => m.enabled) });
+        return Ok(new
+        {
+            sandbox = _options.SandboxMode,
+            providerRedirect = _options.ProviderRedirect,
+            methods = methods.Where(m => m.enabled)
+        });
     }
 
     /// <summary>Click callback.</summary>
