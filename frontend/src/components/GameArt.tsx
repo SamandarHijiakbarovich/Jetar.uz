@@ -1,3 +1,4 @@
+import { mediaUrl } from '../lib/media'
 import type { ListingType } from '../lib/types'
 
 /**
@@ -36,6 +37,7 @@ export default function GameArt({
   type = 'Account',
   image,
   size = 'md',
+  eager = false,
   className = '',
   children,
 }: {
@@ -45,9 +47,12 @@ export default function GameArt({
   type?: ListingType
   image?: string | null
   size?: 'sm' | 'md' | 'lg'
+  /** Muqova ekranning yuqorisida bo'lsa (e'lon sahifasi) darhol yuklanadi. */
+  eager?: boolean
   className?: string
   children?: React.ReactNode
 }) {
+  const resolved = mediaUrl(image)
   const h = hashOf(seed)
 
   // Kompozitsiyani id bo'yicha siljitamiz — kartochkalar bir-biriga o'xshamaydi.
@@ -64,8 +69,13 @@ export default function GameArt({
       className={`relative isolate grid aspect-video place-items-center overflow-hidden ${className}`}
       style={{ background: `linear-gradient(145deg, ${color}2E 0%, #0D0D1C 62%, #08080F 100%)` }}
     >
-      {image ? (
-        <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      {resolved ? (
+        <img
+          src={resolved}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          loading={eager ? 'eager' : 'lazy'}
+        />
       ) : (
         <>
           {/* Yorug'lik dog'lari — sekin harakatlanadi */}

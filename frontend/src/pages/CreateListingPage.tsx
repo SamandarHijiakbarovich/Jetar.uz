@@ -5,6 +5,7 @@ import { useToast } from '../context/toast-context'
 import { ApiError, api } from '../lib/api'
 import { formatPriceInput, parsePriceInput } from '../lib/format'
 import { GAMES, IN_GAME_ITEMS, LISTING_TYPES, RANKS, REGIONS } from '../lib/games'
+import { mediaUrl } from '../lib/media'
 import type { GameType, ListingType } from '../lib/types'
 
 const TIPS = [
@@ -293,7 +294,7 @@ export default function CreateListingPage() {
                     className="group relative aspect-video overflow-hidden rounded-[10px]"
                     title="O'chirish"
                   >
-                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <img src={mediaUrl(url)} alt="" className="h-full w-full object-cover" />
                     <span className="absolute inset-0 grid place-items-center bg-ink/70 text-sm font-semibold opacity-0 transition-opacity group-hover:opacity-100">
                       O'chirish
                     </span>

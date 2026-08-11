@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { stars as starsOf } from '../lib/format'
+import { mediaUrl } from '../lib/media'
 import type { Tone } from '../lib/status'
 
 /** Reyting yulduzchalari — dizayndagi #F59E0B rangda. */
@@ -62,8 +63,8 @@ export function GameCover({
       className={`relative grid aspect-video place-items-center overflow-hidden ${className}`}
       style={{ background: `linear-gradient(135deg, ${color} 0%, #12122A 100%)` }}
     >
-      {image ? (
-        <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      {mediaUrl(image) ? (
+        <img src={mediaUrl(image)} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
       ) : (
         <span style={{ fontSize: glyphSize }} aria-hidden>
           {glyph}

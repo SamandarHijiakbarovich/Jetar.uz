@@ -7,6 +7,7 @@ import { useAuth } from '../context/auth-context'
 import { useToast } from '../context/toast-context'
 import { ApiError, api } from '../lib/api'
 import { money, relativeTime } from '../lib/format'
+import { mediaUrl } from '../lib/media'
 import type { ListingDetail } from '../lib/types'
 
 export default function ListingDetailPage() {
@@ -115,7 +116,7 @@ export default function ListingDetailPage() {
                     i === activeImage ? 'border-brand' : 'border-white/10 hover:border-white/30'
                   }`}
                 >
-                  <img src={img} alt={`Skrinshot ${i + 1}`} className="h-full w-full object-cover" />
+                  <img src={mediaUrl(img)} alt={`Skrinshot ${i + 1}`} className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
