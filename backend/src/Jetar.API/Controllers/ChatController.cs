@@ -1,3 +1,4 @@
+using Jetar.API.Infrastructure;
 using Jetar.Application.Contracts;
 using Jetar.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ namespace Jetar.API.Controllers;
 [ApiController]
 [Route("api/chat")]
 [Authorize]
+[EscrowGate] // Escrow o'chirilgan — bitim chati 410 qaytaradi (kod saqlanadi).
 public class ChatController : ControllerBase
 {
     private readonly IChatService _chat;

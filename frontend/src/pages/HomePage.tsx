@@ -8,15 +8,15 @@ import { relativeTime } from '../lib/format'
 import type { Categories, ListingCard as ListingCardType, Rating } from '../lib/types'
 
 const TRUST = [
-  { glyph: '🛡️', title: 'Escrow kafolati', text: 'Pul siz tasdiqlaguningizcha bloklanadi' },
-  { glyph: '⚡', title: 'O’rtacha 8 daqiqa', text: 'Sotuvchilarning javob berish vaqti' },
-  { glyph: '💳', title: '4 ta to’lov tizimi', text: 'Click, Payme, Uzum, Apelsin' },
+  { glyph: '🆓', title: 'Bepul e’lon', text: 'E’lon joylash mutlaqo bepul' },
+  { glyph: '💬', title: "To'g'ridan-to'g'ri", text: 'Sotuvchi bilan bevosita bog’laning' },
+  { glyph: '🚀', title: 'TOP xizmati', text: 'E’loningizni tepaga chiqaring' },
 ]
 
 const STEPS = [
   { num: '01', glyph: '🎯', title: 'Tanlang', text: "E'lonlarni filtrlab, o'zingizga mos variantni toping." },
-  { num: '02', glyph: '💰', title: "To'lang", text: "Pul Jetar hisobida bloklanadi, sotuvchiga hali o'tmaydi." },
-  { num: '03', glyph: '✅', title: 'Tasdiqlang', text: "Tekshiring — shundan keyingina pul sotuvchiga o'tadi." },
+  { num: '02', glyph: '💬', title: "Bog'laning", text: 'Sotuvchiga Telegram yoki telefon orqali to‘g‘ridan-to‘g‘ri yozing.' },
+  { num: '03', glyph: '🤝', title: 'Kelishing', text: "Shartlarni kelishib, akkauntni bevosita o'zaro almashing." },
 ]
 
 export default function HomePage() {
@@ -94,7 +94,7 @@ export default function HomePage() {
           <div className="min-w-0 animate-jrise">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/[.08] px-3.5 py-[7px] text-xs font-semibold text-brand-300 backdrop-blur-sm sm:text-[13px]">
               <span className="h-[7px] w-[7px] animate-jpulse rounded-full bg-success" />
-              Escrow kafolati bilan ishlaydi
+              Bepul e'lon · to'g'ridan-to'g'ri savdo
             </div>
 
             <h1 className="m-0 mb-5 font-display text-[clamp(36px,7.5vw,66px)] font-extrabold leading-[1.02] tracking-[-.038em]">
@@ -106,8 +106,8 @@ export default function HomePage() {
             </h1>
 
             <p className="m-0 mb-7 max-w-[520px] text-base leading-relaxed text-muted text-pretty sm:text-lg">
-              Akkaunt, o'yin valyutasi, skin va boosting xizmatlari — hammasi bir joyda, escrow
-              himoyasi ostida.
+              Akkaunt, o'yin valyutasi, skin va boosting xizmatlari — hammasi bir joyda. Sotuvchilar
+              bilan to'g'ridan-to'g'ri bog'laning.
             </p>
 
             {/* Qidiruv — marketplace shundan boshlanadi */}
@@ -148,10 +148,10 @@ export default function HomePage() {
                 <div className="rounded-hero border border-white/[.10] bg-gradient-to-b from-[#1E1E38f2] to-[#0F0F20f2] p-4 shadow-panel backdrop-blur-xl sm:p-5">
                   <div className="mb-3.5 flex items-center justify-between">
                     <span className="text-[11.5px] font-bold uppercase tracking-[.12em] text-muted">
-                      Jonli bitim
+                      Ommabop e'lon
                     </span>
                     <span className="flex items-center gap-1.5 text-xs font-semibold text-success">
-                      <span className="h-1.5 w-1.5 animate-jpulse rounded-full bg-success" /> Escrow aktiv
+                      <span className="h-1.5 w-1.5 animate-jpulse rounded-full bg-success" /> Faol
                     </span>
                   </div>
 
@@ -242,9 +242,9 @@ export default function HomePage() {
 
         <div className="mx-auto max-w-[1200px]">
           <div className="mb-12 text-center">
-            <div className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-brand">Escrow</div>
+            <div className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-brand">Qanday ishlaydi</div>
             <h2 className="m-0 font-display text-[clamp(26px,5.5vw,40px)] font-bold tracking-[-.025em]">
-              Uch qadamda xavfsiz bitim
+              Uch qadamda savdo
             </h2>
           </div>
 
@@ -312,11 +312,11 @@ export default function HomePage() {
           <div className="relative flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
             <div>
               <h2 className="m-0 mb-2.5 font-display text-[clamp(22px,4.5vw,32px)] font-bold tracking-[-.02em]">
-                Sotuvchi bo'ling — komissiya atigi 8%
+                Sotuvchi bo'ling — e'lon bepul
               </h2>
               <p className="m-0 max-w-[560px] text-[15px] leading-relaxed text-soft-2">
-                E'lon joylashtiring, xaridor to'lasin, akkauntni topshiring — pul 24 soat ichida
-                kartangizga o'tadi. Escrow ikkala tomonni ham himoya qiladi.
+                E'lon joylashtiring, xaridorlar siz bilan to'g'ridan-to'g'ri bog'lanadi. Ko'proq
+                ko'rinish uchun e'loningizni TOP ga chiqaring.
               </p>
             </div>
 

@@ -12,12 +12,14 @@ public class UsersController : ControllerBase
 {
     private readonly IUserService _users;
     private readonly IListingService _listings;
+    private readonly IRatingService _ratings;
     private readonly ICurrentUser _current;
 
-    public UsersController(IUserService users, IListingService listings, ICurrentUser current)
+    public UsersController(IUserService users, IListingService listings, IRatingService ratings, ICurrentUser current)
     {
         _users = users;
         _listings = listings;
+        _ratings = ratings;
         _current = current;
     }
 
@@ -25,6 +27,12 @@ public class UsersController : ControllerBase
     [HttpGet("{username}")]
     public async Task<ActionResult<PublicProfileDto>> Profile(string username, CancellationToken ct)
         => Ok(await _users.GetPublicProfileAsync(username, ct));
+
+    /// <summary>Sotuvchiga to'g'ridan-to'g'ri baho qoldirish.</summary>
+    [HttpPost("{id:guid}/rating")]
+    [Authorize]
+    public async Task<ActionResult<RatingDto>> Rate(Guid id, CreateRatingRequest request, CancellationToken ct)
+        => Ok(await _ratings.RateUserAsync(id, _current.RequireId(), request, ct));
 
     /// <summary>Mening e'lonlarim — barcha holatlar bilan.</summary>
     [HttpGet("me/listings")]

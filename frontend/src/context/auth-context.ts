@@ -11,6 +11,7 @@ export interface AuthState {
     lastName: string
     username: string
     phone: string
+    email: string
     password: string
     telegramUsername?: string
   }) => Promise<User>

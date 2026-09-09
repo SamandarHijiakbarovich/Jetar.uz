@@ -50,7 +50,10 @@ public class JetarWebFactory : WebApplicationFactory<Program>
                 ["Database:AutoMigrate"] = "false",
                 ["Database:Seed"] = "false",
                 ["Jwt:Secret"] = TestJwtSecret,
-                ["Payments:SandboxMode"] = "true"
+                ["Payments:SandboxMode"] = "true",
+                // Escrow ishlab chiqarishda o'chirilgan, lekin kodi saqlangan — testlar
+                // saqlangan oqimni tekshirishi uchun test muhitida yoqib qo'yamiz.
+                ["Platform:EscrowEnabled"] = "true"
             });
         });
 
@@ -84,7 +87,7 @@ public class JetarWebFactory : WebApplicationFactory<Program>
         var client = CreateClient();
 
         var response = await client.PostAsJsonAsync("/api/auth/register",
-            new RegisterRequest("Test", "Foydalanuvchi", username, phone, "jetar123", null), Json);
+            new RegisterRequest("Test", "Foydalanuvchi", username, phone, $"{username}@test.uz", "jetar123", null), Json);
 
         response.EnsureSuccessStatusCode();
 

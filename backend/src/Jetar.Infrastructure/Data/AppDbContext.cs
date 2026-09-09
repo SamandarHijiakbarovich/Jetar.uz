@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Rating> Ratings => Set<Rating>();
     public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<BoostRequest> BoostRequests => Set<BoostRequest>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

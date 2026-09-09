@@ -13,18 +13,15 @@ public class AdminService : IAdminService
 {
     private readonly IUnitOfWork _uow;
     private readonly PlatformOptions _platform;
-    private readonly PaymentOptions _payments;
     private readonly IClock _clock;
 
     public AdminService(
         IUnitOfWork uow,
         IOptions<PlatformOptions> platform,
-        IOptions<PaymentOptions> payments,
         IClock clock)
     {
         _uow = uow;
         _platform = platform.Value;
-        _payments = payments.Value;
         _clock = clock;
     }
 
@@ -35,42 +32,36 @@ public class AdminService : IAdminService
         var prevMonthStart = monthStart.AddMonths(-1);
 
         var totalUsers = await _uow.Users.CountAsync(ct);
-        var totalTransactions = await _uow.Transactions.CountAsync(ct);
 
-        // Platforma daromadi — ushlangan komissiyalar yig'indisi.
-        var totalRevenue = await _uow.Transactions.SumCommissionAsync(
-            t => t.Status == TransactionStatus.Completed, ct);
+        var activeListings = await _uow.Listings.CountAsync(l => l.Status == ListingStatus.Active, ct);
+        var pendingListings = await _uow.Listings.CountAsync(l => l.Status == ListingStatus.Pending, ct);
+        var totalListings = await _uow.Listings.CountAsync(ct);
 
-        var openDisputes = await _uow.Disputes.CountAsync(
-            d => d.Status == DisputeStatus.Open || d.Status == DisputeStatus.UnderReview, ct);
+        var boostsPending = await _uow.BoostRequests.CountAsync(b => b.Status == BoostStatus.Pending, ct);
+        var boostsApproved = await _uow.BoostRequests.CountAsync(b => b.Status == BoostStatus.Approved, ct);
 
-        var over24hCutoff = now.AddHours(-24);
-        var disputesOver24h = await _uow.Disputes.CountAsync(
-            d => (d.Status == DisputeStatus.Open || d.Status == DisputeStatus.UnderReview)
-                 && d.CreatedAt <= over24hCutoff, ct);
+        // Platforma daromadi — tasdiqlangan ko'tarishlar (o'z reklama xizmati).
+        var boostRevenue = await _uow.BoostRequests.SumApprovedAmountAsync(null, ct);
+        var revThisMonth = await _uow.BoostRequests.SumApprovedAmountAsync(monthStart, ct);
+        var revPrevMonth = boostRevenue - revThisMonth; // taxminiy: oldingi barcha davr
 
         var usersThisMonth = await _uow.Users.CountAsync(u => u.CreatedAt >= monthStart, ct);
         var usersPrevMonth = await _uow.Users.CountAsync(u => u.CreatedAt >= prevMonthStart && u.CreatedAt < monthStart, ct);
 
-        var txThisMonth = await _uow.Transactions.CountAsync(t => t.CreatedAt >= monthStart, ct);
-        var txPrevMonth = await _uow.Transactions.CountAsync(t => t.CreatedAt >= prevMonthStart && t.CreatedAt < monthStart, ct);
-
-        var revThisMonth = await _uow.Transactions.SumCommissionAsync(
-            t => t.Status == TransactionStatus.Completed && t.CompletedAt >= monthStart, ct);
-        var revPrevMonth = await _uow.Transactions.SumCommissionAsync(
-            t => t.Status == TransactionStatus.Completed && t.CompletedAt >= prevMonthStart && t.CompletedAt < monthStart, ct);
+        var listingsThisMonth = await _uow.Listings.CountAsync(l => l.CreatedAt >= monthStart, ct);
+        var listingsPrevMonth = await _uow.Listings.CountAsync(l => l.CreatedAt >= prevMonthStart && l.CreatedAt < monthStart, ct);
 
         return new AdminStatsDto(
             totalUsers,
-            totalTransactions,
-            totalRevenue,
-            openDisputes,
-            disputesOver24h,
+            activeListings,
+            pendingListings,
+            totalListings,
+            boostsPending,
+            boostsApproved,
+            boostRevenue,
             Growth(usersThisMonth, usersPrevMonth),
-            Growth(txThisMonth, txPrevMonth),
-            Growth((double)revThisMonth, (double)revPrevMonth),
-            await _uow.Listings.CountAsync(l => l.Status == ListingStatus.Active, ct),
-            await _uow.Listings.CountAsync(l => l.Status == ListingStatus.Pending, ct));
+            Growth(listingsThisMonth, listingsPrevMonth),
+            Growth((double)revThisMonth, (double)revPrevMonth));
     }
 
     public async Task<PagedResult<AdminTransactionRowDto>> GetTransactionsAsync(string? search, int page, int pageSize, CancellationToken ct = default)
@@ -113,12 +104,13 @@ public class AdminService : IAdminService
 
     public Task<PlatformSettingsDto> GetSettingsAsync(CancellationToken ct = default)
         => Task.FromResult(new PlatformSettingsDto(
-            _platform.CommissionRate,
-            _platform.AutoReleaseHours,
+            _platform.EscrowEnabled,
+            _platform.ContactRequiresLogin,
             _platform.MinListingPrice,
             _platform.MaxListingPrice,
             _platform.AutoApproveListings,
-            _payments.SandboxMode));
+            _platform.Boost.CardNumber,
+            _platform.Boost.Tiers.Count));
 
     public async Task<PagedResult<AdminUserRowDto>> GetUsersAsync(
         string? search, UserRole? role, bool? blocked, bool? verified, int page, int pageSize, CancellationToken ct = default)

@@ -28,6 +28,7 @@ public partial class AuthService : IAuthService
         var phone = NormalizePhone(request.Phone);
         var firstName = request.FirstName?.Trim() ?? string.Empty;
         var lastName = request.LastName?.Trim() ?? string.Empty;
+        var email = request.Email?.Trim().ToLowerInvariant() ?? string.Empty;
 
         if (!PersonNameRegex().IsMatch(firstName))
             throw new AppException("Ismni to'g'ri kiriting (2–50 harf).", 400, "invalid_first_name");
@@ -41,6 +42,9 @@ public partial class AuthService : IAuthService
         if (!PhoneRegex().IsMatch(phone))
             throw new AppException("Telefon raqami +998XXXXXXXXX ko'rinishida bo'lishi kerak.", 400, "invalid_phone");
 
+        if (!EmailRegex().IsMatch(email))
+            throw new AppException("Email manzilini to'g'ri kiriting.", 400, "invalid_email");
+
         if (request.Password.Length < 6)
             throw new AppException("Parol kamida 6 belgidan iborat bo'lsin.", 400, "weak_password");
 
@@ -49,11 +53,15 @@ public partial class AuthService : IAuthService
 
         if (await _uow.Users.AnyAsync(u => u.Phone == phone, ct))
             throw AppException.Conflict("Bu telefon raqami allaqachon ro'yxatdan o'tgan.");
+        
+        if (await _uow.Users.AnyAsync(u => u.Email == email, ct))
+            throw AppException.Conflict("Bu email allaqachon ro'yxatdan o'tgan.");
 
         var user = new User
         {
             Username = username,
             Phone = phone,
+            Email=email,
             FirstName = firstName,
             LastName = lastName,
             PasswordHash = _hasher.Hash(request.Password),
@@ -142,4 +150,7 @@ public partial class AuthService : IAuthService
 
     [GeneratedRegex(@"^\+998\d{9}$")]
     private static partial Regex PhoneRegex();
+
+    [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
+    private static partial Regex EmailRegex();
 }

@@ -1,4 +1,5 @@
 using Jetar.Domain.Common;
+using Jetar.API.Infrastructure;
 using Jetar.Application.Contracts;
 using Jetar.Application.Interfaces;
 using Jetar.Infrastructure.Services;
@@ -10,22 +11,20 @@ namespace Jetar.API.Controllers;
 [ApiController]
 [Route("api/transactions")]
 [Authorize]
+[EscrowGate] // Escrow o'chirilgan — butun controller 410 qaytaradi (kod saqlanadi).
 public class TransactionsController : ControllerBase
 {
     private readonly IEscrowService _escrow;
     private readonly ITransactionService _transactions;
-    private readonly IRatingService _ratings;
     private readonly ICurrentUser _user;
 
     public TransactionsController(
         IEscrowService escrow,
         ITransactionService transactions,
-        IRatingService ratings,
         ICurrentUser user)
     {
         _escrow = escrow;
         _transactions = transactions;
-        _ratings = ratings;
         _user = user;
     }
 
@@ -81,9 +80,4 @@ public class TransactionsController : ControllerBase
         await _escrow.CancelAsync(id, _user.RequireId(), request.Reason, ct);
         return Ok(await _transactions.GetAsync(id, _user.RequireId(), false, ct));
     }
-
-    /// <summary>Bitim yakunlangach baho qoldirish.</summary>
-    [HttpPost("{id:guid}/rating")]
-    public async Task<ActionResult<RatingDto>> Rate(Guid id, CreateRatingRequest request, CancellationToken ct)
-        => Ok(await _ratings.CreateAsync(id, _user.RequireId(), request, ct));
 }

@@ -60,7 +60,11 @@ public record SellerDto(
     int TotalSales,
     bool IsVerified,
     int AvgResponseMinutes,
-    DateTimeOffset MemberSince);
+    DateTimeOffset MemberSince,
+    string? City = null,
+    // Kontakt faqat tizimga kirgan foydalanuvchiga ko'rsatiladi (spamga qarshi).
+    string? Phone = null,
+    string? TelegramUsername = null);
 
 public record CreateListingRequest(
     GameType GameType,

@@ -60,6 +60,7 @@ public static class DependencyInjection
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
         services.AddScoped<IDisputeRepository, DisputeRepository>();
+        services.AddScoped<IBoostRequestRepository, BoostRequestRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // ── Servislar ─────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IRatingService, RatingService>();
+        services.AddScoped<IBoostService, BoostService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<INotificationService, NotificationService>();

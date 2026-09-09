@@ -4,15 +4,15 @@ namespace Jetar.Application.Contracts;
 
 public record AdminStatsDto(
     int TotalUsers,
-    int TotalTransactions,
-    decimal TotalRevenue,
-    int OpenDisputes,
-    int DisputesOver24h,
-    double UsersGrowthPercent,
-    double TransactionsGrowthPercent,
-    double RevenueGrowthPercent,
     int ActiveListings,
-    int PendingListings);
+    int PendingListings,
+    int TotalListings,
+    int BoostsPending,
+    int BoostsApproved,
+    decimal BoostRevenue,
+    double UsersGrowthPercent,
+    double ListingsGrowthPercent,
+    double BoostRevenueGrowthPercent);
 
 public record AdminTransactionRowDto(
     Guid Id,
@@ -48,9 +48,10 @@ public record AdminDisputeRowDto(
     DateTimeOffset CreatedAt);
 
 public record PlatformSettingsDto(
-    decimal CommissionRate,
-    int AutoReleaseHours,
+    bool EscrowEnabled,
+    bool ContactRequiresLogin,
     decimal MinListingPrice,
     decimal MaxListingPrice,
     bool AutoApproveListings,
-    bool SandboxPayments);
+    string BoostCardNumber,
+    int BoostTierCount);

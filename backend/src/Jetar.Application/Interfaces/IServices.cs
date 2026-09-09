@@ -59,8 +59,35 @@ public interface IChatService
 
 public interface IRatingService
 {
+    /// <summary>Escrow bitimi yakunlangach baho (eski model). Escrow o'chirilgan bo'lsa ishlatilmaydi.</summary>
     Task<RatingDto> CreateAsync(Guid transactionId, Guid fromUserId, CreateRatingRequest request, CancellationToken ct = default);
+
+    /// <summary>Sotuvchiga to'g'ridan-to'g'ri baho (yangi model) — bir foydalanuvchi bir sotuvchiga bir marta.</summary>
+    Task<RatingDto> RateUserAsync(Guid toUserId, Guid fromUserId, CreateRatingRequest request, CancellationToken ct = default);
+
     Task<IReadOnlyList<RatingDto>> GetForUserAsync(Guid userId, int limit, CancellationToken ct = default);
+}
+
+/// <summary>Pullik ko'tarish (TOP/VIP) — so'rov, admin tasdig'i.</summary>
+public interface IBoostService
+{
+    /// <summary>Karta rekvizitlari va tariflar (ochiq).</summary>
+    BoostConfigDto GetConfig();
+
+    /// <summary>Sotuvchi to'lov qildim deb so'rov yuboradi.</summary>
+    Task<BoostRequestDto> RequestAsync(Guid userId, CreateBoostRequest request, CancellationToken ct = default);
+
+    /// <summary>Sotuvchining o'z so'rovlari.</summary>
+    Task<IReadOnlyList<BoostRequestDto>> GetMineAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>Admin uchun: ko'rib chiqilishi kutilayotgan so'rovlar.</summary>
+    Task<IReadOnlyList<BoostRequestDto>> GetPendingAsync(CancellationToken ct = default);
+
+    /// <summary>Admin tasdiqlaydi — e'lon BoostedUntil gacha ko'tariladi.</summary>
+    Task<BoostRequestDto> ApproveAsync(Guid id, Guid moderatorId, CancellationToken ct = default);
+
+    /// <summary>Admin rad etadi.</summary>
+    Task<BoostRequestDto> RejectAsync(Guid id, Guid moderatorId, string? note, CancellationToken ct = default);
 }
 
 public interface IUserService

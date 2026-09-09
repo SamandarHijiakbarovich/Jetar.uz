@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import ListingCard from '../components/ListingCard'
-import { Avatar, EmptyState, PageLoader, Stars } from '../components/ui'
-import { api } from '../lib/api'
+import { Avatar, EmptyState, PageLoader, Spinner, Stars } from '../components/ui'
+import { useAuth } from '../context/auth-context'
+import { useToast } from '../context/toast-context'
+import { ApiError, api } from '../lib/api'
 import { relativeTime } from '../lib/format'
 import type { ListingCard as ListingCardType, Rating, User } from '../lib/types'
 
 export default function PublicProfilePage() {
   const { username = '' } = useParams()
+  const { user: me } = useAuth()
 
   const [data, setData] = useState<{ user: User; listings: ListingCardType[]; ratings: Rating[] } | null>(null)
   const [notFound, setNotFound] = useState(false)
+
+  function reload() {
+    api.users
+      .profile(username)
+      .then(setData)
+      .catch(() => setNotFound(true))
+  }
 
   useEffect(() => {
     let alive = true
@@ -42,6 +52,7 @@ export default function PublicProfilePage() {
 
   const { user, listings, ratings } = data
   const active = listings.filter((l) => l.status === 'Active')
+  const canRate = me && me.id !== user.id && !ratings.some((r) => r.fromUsername === me.username)
 
   return (
     <div className="page pb-20 pt-8 sm:pb-24 sm:pt-11">
@@ -97,6 +108,13 @@ export default function PublicProfilePage() {
         </div>
       )}
 
+      {canRate && (
+        <div className="mb-10">
+          <h2 className="m-0 mb-4 font-display text-xl font-bold sm:text-2xl">Sotuvchiga baho bering</h2>
+          <RatingForm userId={user.id} onDone={reload} />
+        </div>
+      )}
+
       {ratings.length > 0 && (
         <>
           <h2 className="m-0 mb-5 font-display text-xl font-bold sm:mb-6 sm:text-2xl">Sharhlar</h2>
@@ -120,6 +138,60 @@ export default function PublicProfilePage() {
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+function RatingForm({ userId, onDone }: { userId: string; onDone: () => void }) {
+  const toast = useToast()
+  const [score, setScore] = useState(5)
+  const [hover, setHover] = useState(0)
+  const [comment, setComment] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function submit() {
+    setSaving(true)
+    try {
+      await api.users.rate(userId, score, comment.trim() || undefined)
+      toast.success('Bahoyingiz qabul qilindi. Rahmat!')
+      onDone()
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Baho yuborilmadi.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="card p-5 sm:p-6">
+      <div className="mb-4 flex gap-1.5" role="radiogroup" aria-label="Baho">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            onClick={() => setScore(n)}
+            onMouseEnter={() => setHover(n)}
+            onMouseLeave={() => setHover(0)}
+            aria-label={`${n} yulduz`}
+            className="text-[30px] leading-none transition-transform hover:scale-110"
+            style={{ color: n <= (hover || score) ? '#F59E0B' : '#3A3A52' }}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        rows={3}
+        maxLength={1000}
+        placeholder="Sotuvchi bilan tajribangiz haqida yozing (ixtiyoriy)"
+        className="field resize-y !py-3"
+      />
+
+      <button onClick={submit} disabled={saving} className="btn-primary mt-4 flex items-center justify-center gap-2 px-7 py-3">
+        {saving ? <Spinner size={18} /> : 'Bahoni yuborish'}
+      </button>
     </div>
   )
 }

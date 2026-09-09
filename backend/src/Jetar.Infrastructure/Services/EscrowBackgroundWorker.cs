@@ -1,7 +1,9 @@
 using Jetar.Application.Interfaces;
+using Jetar.Application.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Jetar.Infrastructure.Services;
 
@@ -14,16 +16,28 @@ public class EscrowBackgroundWorker : BackgroundService
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(5);
 
     private readonly IServiceScopeFactory _scopes;
+    private readonly PlatformOptions _platform;
     private readonly ILogger<EscrowBackgroundWorker> _log;
 
-    public EscrowBackgroundWorker(IServiceScopeFactory scopes, ILogger<EscrowBackgroundWorker> log)
+    public EscrowBackgroundWorker(
+        IServiceScopeFactory scopes,
+        IOptions<PlatformOptions> platform,
+        ILogger<EscrowBackgroundWorker> log)
     {
         _scopes = scopes;
+        _platform = platform.Value;
         _log = log;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Escrow o'chirilgan bo'lsa fon vazifasi ishlamaydi — pul harakati yo'q.
+        if (!_platform.EscrowEnabled)
+        {
+            _log.LogInformation("Escrow o'chirilgan — fon vazifasi ishga tushmaydi.");
+            return;
+        }
+
         // Ilova ko'tarilib bo'lishiga fursat beramiz.
         await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
 

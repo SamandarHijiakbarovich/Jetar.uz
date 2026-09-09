@@ -4,7 +4,7 @@
     {
       "name": "jetar-web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "D:/jetar/frontend"],
+      "runtimeArgs": ["run", "dev", "--prefix", "C:/Users/Admin/Documents/Jetar.uz/frontend"],
       "port": 5173
     }
   ]

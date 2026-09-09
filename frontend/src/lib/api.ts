@@ -4,6 +4,8 @@ import type {
   AdminTransactionRow,
   AdminUserRow,
   AuthResponse,
+  BoostConfig,
+  BoostRequest,
   Categories,
   GameSummary,
   ListingCard,
@@ -171,6 +173,7 @@ export const api = {
       lastName: string
       username: string
       phone: string
+      email: string
       password: string
       telegramUsername?: string
     }) => request<AuthResponse>('/api/auth/register', { method: 'POST', body, auth: false }),
@@ -276,6 +279,10 @@ export const api = {
         { auth: false },
       ),
 
+    /** Sotuvchiga to'g'ridan-to'g'ri baho qoldirish. */
+    rate: (userId: string, score: number, comment?: string) =>
+      request<Rating>(`/api/users/${userId}/rating`, { method: 'POST', body: { score, comment } }),
+
     myListings: (page = 1, pageSize = 24) =>
       request<Paged<ListingCard>>(`/api/users/me/listings${qs({ page, pageSize })}`),
 
@@ -305,8 +312,24 @@ export const api = {
     }) => request<User>('/api/users/me/notifications', { method: 'PATCH', body }),
   },
 
+  boosts: {
+    config: () => request<BoostConfig>('/api/boosts/config', { auth: false }),
+
+    create: (listingId: string, days: number, screenshotUrl?: string) =>
+      request<BoostRequest>('/api/boosts', { method: 'POST', body: { listingId, days, screenshotUrl } }),
+
+    mine: () => request<BoostRequest[]>('/api/boosts/mine'),
+  },
+
   admin: {
     stats: () => request<AdminStats>('/api/admin/stats'),
+
+    boosts: () => request<BoostRequest[]>('/api/admin/boosts'),
+
+    approveBoost: (id: string) => request<BoostRequest>(`/api/admin/boosts/${id}/approve`, { method: 'POST' }),
+
+    rejectBoost: (id: string, note?: string) =>
+      request<BoostRequest>(`/api/admin/boosts/${id}/reject`, { method: 'POST', body: { note } }),
 
     transactions: (search?: string, page = 1, pageSize = 20) =>
       request<Paged<AdminTransactionRow>>(`/api/admin/transactions${qs({ search, page, pageSize })}`),

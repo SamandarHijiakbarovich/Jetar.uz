@@ -1,19 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import TransactionTable from '../components/TransactionTable'
 import { Avatar, GameCover, PageLoader, SkeletonCard, Spinner, StatusPill } from '../components/ui'
 import { useAuth } from '../context/auth-context'
 import { useToast } from '../context/toast-context'
 import { ApiError, api } from '../lib/api'
-import { money } from '../lib/format'
+import { money, relativeTime } from '../lib/format'
 import { LISTING_TONES } from '../lib/status'
-import type { ListingCard, Transaction } from '../lib/types'
+import type { BoostRequest, ListingCard } from '../lib/types'
 
-type Tab = 'listings' | 'tx' | 'settings'
+type Tab = 'listings' | 'boosts' | 'settings'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'listings', label: "Mening e'lonlarim" },
-  { key: 'tx', label: 'Bitimlarim' },
+  { key: 'boosts', label: 'Ko\'tarishlarim' },
   { key: 'settings', label: 'Sozlamalar' },
 ]
 
@@ -21,15 +20,6 @@ export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab) ?? 'listings'
-
-  const [summary, setSummary] = useState<{ activeListings: number; totalEarned: number } | null>(null)
-
-  useEffect(() => {
-    api.users
-      .summary()
-      .then((s) => setSummary({ activeListings: s.activeListings, totalEarned: s.totalEarned }))
-      .catch(() => {})
-  }, [])
 
   if (!user) return <PageLoader />
 
@@ -68,18 +58,9 @@ export default function ProfilePage() {
 
         <div className="flex w-full justify-between gap-4 border-t border-white/[.08] pt-4 sm:w-auto sm:justify-start sm:gap-7 sm:border-0 sm:pt-0">
           <Metric value={String(user.totalSales)} label="Sotilgan" />
-          <Metric value={String(user.totalPurchases)} label="Sotib olingan" />
+          <Metric value={String(user.ratingCount)} label="Baholar" />
           <Metric value={user.rating.toFixed(1)} label="Reyting" color="#FF6B35" />
         </div>
-
-        {summary && (
-          <div className="w-full rounded-[14px] border border-white/[.08] bg-white/[.03] px-5 py-3.5 sm:w-auto">
-            <div className="text-xs text-dim">Jami ishlangan</div>
-            <div className="font-display text-lg font-bold text-success-fg">
-              {money(summary.totalEarned)} so'm
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ── Tablar ──────────────────────────────────────────────────── */}
@@ -99,7 +80,7 @@ export default function ProfilePage() {
       </div>
 
       {tab === 'listings' && <MyListingsTab />}
-      {tab === 'tx' && <MyTransactionsTab />}
+      {tab === 'boosts' && <MyBoostsTab />}
       {tab === 'settings' && <SettingsTab onSaved={refreshUser} />}
     </div>
   )
@@ -191,18 +172,64 @@ function MyListingsTab() {
   )
 }
 
-function MyTransactionsTab() {
-  const [items, setItems] = useState<Transaction[] | null>(null)
+const BOOST_TONE: Record<BoostRequest['status'], { label: string; cls: string }> = {
+  Pending: { label: 'Kutilmoqda', cls: 'border-warning/30 bg-warning/[.10] text-[#F5D08C]' },
+  Approved: { label: 'Tasdiqlangan', cls: 'border-success/30 bg-success/[.10] text-success-fg' },
+  Rejected: { label: 'Rad etilgan', cls: 'border-danger/30 bg-danger/[.10] text-danger-fg' },
+}
+
+function MyBoostsTab() {
+  const [items, setItems] = useState<BoostRequest[] | null>(null)
 
   useEffect(() => {
-    api.transactions
-      .list(undefined, 1, 50)
-      .then((res) => setItems(res.items))
+    api.boosts
+      .mine()
+      .then(setItems)
       .catch(() => setItems([]))
   }, [])
 
-  if (items === null) return <PageLoader label="Bitimlar yuklanmoqda…" />
-  return <TransactionTable items={items} />
+  if (items === null) return <PageLoader label="Yuklanmoqda…" />
+
+  if (items.length === 0) {
+    return (
+      <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center">
+        <div className="text-4xl">🚀</div>
+        <h3 className="font-display text-xl font-bold">Hali ko'tarish so'rovi yo'q</h3>
+        <p className="max-w-md text-[15px] leading-relaxed text-muted">
+          E'loningizni ro'yxat tepasiga chiqarish uchun uning sahifasidagi "TOP ga chiqarish" tugmasini bosing.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {items.map((b) => {
+        const tone = BOOST_TONE[b.status]
+        return (
+          <div key={b.id} className="card flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
+            <div className="min-w-0 flex-1">
+              <Link to={`/listings/${b.listingId}`} className="line-clamp-1 font-semibold hover:text-brand">
+                {b.listingTitle}
+              </Link>
+              <div className="mt-1 text-[13px] text-muted">
+                {b.days} kun · {money(b.amount)} so'm · {relativeTime(b.createdAt)}
+              </div>
+              {b.status === 'Rejected' && b.reviewNote && (
+                <div className="mt-1 text-[13px] text-danger-fg">Sabab: {b.reviewNote}</div>
+              )}
+              {b.status === 'Approved' && b.boostedUntil && (
+                <div className="mt-1 text-[13px] text-success-fg">
+                  {new Date(b.boostedUntil).toLocaleDateString('uz')} gacha TOP da
+                </div>
+              )}
+            </div>
+            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${tone.cls}`}>{tone.label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 function SettingsTab({ onSaved }: { onSaved: () => Promise<void> }) {

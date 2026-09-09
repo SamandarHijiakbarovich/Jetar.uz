@@ -91,6 +91,10 @@ export interface Seller {
   isVerified: boolean
   avgResponseMinutes: number
   memberSince: string
+  city?: string | null
+  /** Kontakt faqat tizimga kirgan foydalanuvchiga qaytadi (spamga qarshi). */
+  phone?: string | null
+  telegramUsername?: string | null
 }
 
 export interface ListingDetail {
@@ -183,6 +187,35 @@ export interface Rating {
   createdAt: string
 }
 
+export type BoostStatus = 'Pending' | 'Approved' | 'Rejected'
+
+export interface BoostTier {
+  days: number
+  price: number
+  label: string
+}
+
+export interface BoostConfig {
+  cardNumber: string
+  cardHolder: string
+  tiers: BoostTier[]
+}
+
+export interface BoostRequest {
+  id: string
+  listingId: string
+  listingTitle: string
+  sellerUsername: string
+  days: number
+  amount: number
+  screenshotUrl?: string | null
+  status: BoostStatus
+  reviewNote?: string | null
+  createdAt: string
+  reviewedAt?: string | null
+  boostedUntil?: string | null
+}
+
 export interface GameSummary {
   slug: string
   name: string
@@ -215,15 +248,15 @@ export interface Paged<T> {
 
 export interface AdminStats {
   totalUsers: number
-  totalTransactions: number
-  totalRevenue: number
-  openDisputes: number
-  disputesOver24h: number
-  usersGrowthPercent: number
-  transactionsGrowthPercent: number
-  revenueGrowthPercent: number
   activeListings: number
   pendingListings: number
+  totalListings: number
+  boostsPending: number
+  boostsApproved: number
+  boostRevenue: number
+  usersGrowthPercent: number
+  listingsGrowthPercent: number
+  boostRevenueGrowthPercent: number
 }
 
 export interface AdminTransactionRow {
@@ -263,12 +296,13 @@ export interface AdminUserRow {
 }
 
 export interface PlatformSettings {
-  commissionRate: number
-  autoReleaseHours: number
+  escrowEnabled: boolean
+  contactRequiresLogin: boolean
   minListingPrice: number
   maxListingPrice: number
   autoApproveListings: boolean
-  sandboxPayments: boolean
+  boostCardNumber: string
+  boostTierCount: number
 }
 
 export interface PaymentMethodOption {

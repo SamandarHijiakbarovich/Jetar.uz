@@ -1,5 +1,6 @@
 using Jetar.Domain.Common;
 using Jetar.Domain.Enums;
+using Jetar.API.Infrastructure;
 using Jetar.Application.Contracts;
 using Jetar.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -14,12 +15,14 @@ public class AdminController : ControllerBase
 {
     private readonly IAdminService _admin;
     private readonly IEscrowService _escrow;
+    private readonly IBoostService _boosts;
     private readonly ICurrentUser _user;
 
-    public AdminController(IAdminService admin, IEscrowService escrow, ICurrentUser user)
+    public AdminController(IAdminService admin, IEscrowService escrow, IBoostService boosts, ICurrentUser user)
     {
         _admin = admin;
         _escrow = escrow;
+        _boosts = boosts;
         _user = user;
     }
 
@@ -39,6 +42,7 @@ public class AdminController : ControllerBase
 
     /// <summary>11 — nizo bo'yicha qaror. favourBuyer=true bo'lsa pul xaridorga qaytariladi.</summary>
     [HttpPost("disputes/{id:guid}/resolve")]
+    [EscrowGate] // Pul harakati — escrow o'chirilgan bo'lsa 410.
     public async Task<ActionResult<object>> ResolveDispute(Guid id, ResolveDisputeRequest request, CancellationToken ct)
     {
         var tx = await _escrow.ResolveDisputeAsync(id, _user.RequireId(), request, ct);
@@ -90,4 +94,21 @@ public class AdminController : ControllerBase
         await _admin.SetListingVerifiedAsync(id, verified, ct);
         return NoContent();
     }
+
+    // ── Pullik ko'tarish (TOP/VIP) ────────────────────────────────────────────
+
+    /// <summary>Ko'rib chiqilishi kutilayotgan boost so'rovlari.</summary>
+    [HttpGet("boosts")]
+    public async Task<ActionResult<IReadOnlyList<BoostRequestDto>>> Boosts(CancellationToken ct)
+        => Ok(await _boosts.GetPendingAsync(ct));
+
+    /// <summary>To'lov tasdiqlandi — e'lonni ko'taradi.</summary>
+    [HttpPost("boosts/{id:guid}/approve")]
+    public async Task<ActionResult<BoostRequestDto>> ApproveBoost(Guid id, CancellationToken ct)
+        => Ok(await _boosts.ApproveAsync(id, _user.RequireId(), ct));
+
+    /// <summary>Boost so'rovini rad etadi.</summary>
+    [HttpPost("boosts/{id:guid}/reject")]
+    public async Task<ActionResult<BoostRequestDto>> RejectBoost(Guid id, RejectBoostRequest request, CancellationToken ct)
+        => Ok(await _boosts.RejectAsync(id, _user.RequireId(), request.Note, ct));
 }

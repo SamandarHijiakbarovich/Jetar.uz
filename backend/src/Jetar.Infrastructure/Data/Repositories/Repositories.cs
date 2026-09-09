@@ -88,12 +88,22 @@ public class RatingRepository : EfRepository<Rating>, IRatingRepository
     public async Task<IReadOnlyList<Guid>> RatedTransactionIdsAsync(
         IReadOnlyCollection<Guid> transactionIds, Guid fromUserId, CancellationToken ct = default)
         => await Set
-            .Where(r => transactionIds.Contains(r.TransactionId) && r.FromUserId == fromUserId)
-            .Select(r => r.TransactionId)
+            .Where(r => r.TransactionId != null && transactionIds.Contains(r.TransactionId.Value) && r.FromUserId == fromUserId)
+            .Select(r => r.TransactionId!.Value)
             .ToListAsync(ct);
 }
 
 public class DisputeRepository : EfRepository<Dispute>, IDisputeRepository
 {
     public DisputeRepository(AppDbContext db) : base(db) { }
+}
+
+public class BoostRequestRepository : EfRepository<BoostRequest>, IBoostRequestRepository
+{
+    public BoostRequestRepository(AppDbContext db) : base(db) { }
+
+    public async Task<decimal> SumApprovedAmountAsync(DateTimeOffset? since = null, CancellationToken ct = default)
+        => await Set
+            .Where(b => b.Status == BoostStatus.Approved && (since == null || b.ReviewedAt >= since))
+            .SumAsync(b => (decimal?)b.Amount, ct) ?? 0m;
 }

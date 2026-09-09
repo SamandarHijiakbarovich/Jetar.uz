@@ -34,6 +34,9 @@ public class UnitOfWork : IUnitOfWork
     private IDisputeRepository? _disputes;
     public IDisputeRepository Disputes => _disputes ??= new DisputeRepository(_db);
 
+    private IBoostRequestRepository? _boostRequests;
+    public IBoostRequestRepository BoostRequests => _boostRequests ??= new BoostRequestRepository(_db);
+
     public Task<int> SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 
     public async Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken ct = default)

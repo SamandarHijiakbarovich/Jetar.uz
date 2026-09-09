@@ -1,3 +1,4 @@
+using Jetar.API.Infrastructure;
 using Jetar.Application.Contracts;
 using Jetar.Domain.Enums;
 using Jetar.Application.Interfaces;
@@ -10,6 +11,7 @@ namespace Jetar.API.Controllers;
 
 [ApiController]
 [Route("api/payments")]
+[EscrowGate] // Escrow o'chirilgan — to'lov endpoint'lari 410 qaytaradi (kod saqlanadi).
 public class PaymentsController : ControllerBase
 {
     private readonly IPaymentService _payments;

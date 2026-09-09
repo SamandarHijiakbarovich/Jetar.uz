@@ -56,6 +56,41 @@ public class RatingService : IRatingService
         return rating.ToDto();
     }
 
+    public async Task<RatingDto> RateUserAsync(Guid toUserId, Guid fromUserId, CreateRatingRequest request, CancellationToken ct = default)
+    {
+        if (request.Score is < 1 or > 5)
+            throw new AppException("Baho 1 dan 5 gacha bo'lishi kerak.", 400, "invalid_score");
+
+        if (toUserId == fromUserId)
+            throw new AppException("O'zingizga baho qo'yolmaysiz.", 400, "self_rating");
+
+        var target = await _uow.Users.GetByIdAsync(toUserId, ct)
+                     ?? throw AppException.NotFound("Foydalanuvchi");
+
+        // To'g'ridan-to'g'ri baho: bir foydalanuvchi bir sotuvchiga bir marta.
+        if (await _uow.Ratings.AnyAsync(
+                r => r.ToUserId == toUserId && r.FromUserId == fromUserId && r.TransactionId == null, ct))
+            throw AppException.Conflict("Siz bu sotuvchiga allaqachon baho qoldirgansiz.");
+
+        var rating = new Rating
+        {
+            TransactionId = null,
+            FromUserId = fromUserId,
+            ToUserId = toUserId,
+            Score = request.Score,
+            Comment = request.Comment?.Trim(),
+            CreatedAt = _clock.UtcNow
+        };
+
+        await _uow.Ratings.AddAsync(rating, ct);
+        await _uow.SaveChangesAsync(ct);
+
+        await RecalculateAsync(toUserId, ct);
+
+        rating.FromUser = await _uow.Users.GetByIdAsync(fromUserId, ct);
+        return rating.ToDto();
+    }
+
     public async Task<IReadOnlyList<RatingDto>> GetForUserAsync(Guid userId, int limit, CancellationToken ct = default)
     {
         var ratings = await _uow.Ratings.ListForUserAsync(userId, limit, ct);

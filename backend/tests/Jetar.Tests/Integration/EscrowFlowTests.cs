@@ -49,7 +49,7 @@ public class EscrowFlowTests : IClassFixture<JetarWebFactory>
     public async Task Bir_xil_username_bilan_ikki_marta_royxatdan_otilmaydi()
     {
         var client = _factory.CreateClient();
-        var request = new RegisterRequest("Takror", "Sinovchi", "takror_user", "+998911110001", "jetar123", null);
+        var request = new RegisterRequest("Takror", "Sinovchi", "takror_user", "+998911110001", "takror@test.uz", "jetar123", null);
 
         (await client.PostAsJsonAsync("/api/auth/register", request, Json)).EnsureSuccessStatusCode();
 
@@ -65,7 +65,7 @@ public class EscrowFlowTests : IClassFixture<JetarWebFactory>
         var client = _factory.CreateClient();
 
         await client.PostAsJsonAsync("/api/auth/register",
-            new RegisterRequest("Parol", "Sinovchi", "parol_test", "+998911110003", "jetar123", null), Json);
+            new RegisterRequest("Parol", "Sinovchi", "parol_test", "+998911110003", "parol@test.uz", "jetar123", null), Json);
 
         var response = await client.PostAsJsonAsync("/api/auth/login",
             new LoginRequest("parol_test", "notogri"), Json);
@@ -146,8 +146,8 @@ public class EscrowFlowTests : IClassFixture<JetarWebFactory>
         completed!.Status.Should().Be(TransactionStatus.Completed);
         completed.CompletedAt.Should().NotBeNull();
 
-        // 8. Baho qoldiriladi va sotuvchi reytingi yangilanadi
-        var rate = await buyerClient.PostAsJsonAsync($"/api/transactions/{tx.Id}/rating",
+        // 8. Baho qoldiriladi va sotuvchi reytingi yangilanadi (sotuvchiga to'g'ridan-to'g'ri)
+        var rate = await buyerClient.PostAsJsonAsync($"/api/users/{seller.Id}/rating",
             new CreateRatingRequest(5, "Tez va ishonchli!"), Json);
         rate.EnsureSuccessStatusCode();
 

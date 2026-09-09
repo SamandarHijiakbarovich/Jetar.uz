@@ -333,8 +333,9 @@ export default function CreateListingPage() {
           </div>
 
           <div className="mt-5 border-t border-brand/20 pt-[18px] text-[13px] leading-[1.6] text-muted">
-            Komissiya: har bitimdan <strong className="text-brand">8%</strong>. Pul bitim yakunlangach 24 soat
-            ichida kartangizga o'tadi.
+            E'lon joylash <strong className="text-brand">bepul</strong>. Xaridor siz bilan to'g'ridan-to'g'ri
+            (Telegram/telefon) bog'lanadi. E'loningizni ro'yxat tepasiga chiqarish uchun{' '}
+            <strong className="text-brand">TOP</strong> xizmatidan foydalaning.
           </div>
         </aside>
       </div>

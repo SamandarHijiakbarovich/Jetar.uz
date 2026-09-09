@@ -13,9 +13,9 @@ const COLUMNS = [
   {
     title: 'YORDAM',
     links: [
-      { label: 'Escrow qanday ishlaydi', to: '/#qanday-ishlaydi' },
+      { label: 'Qanday ishlaydi', to: '/#qanday-ishlaydi' },
       { label: "Ko'p so'raladigan savollar", to: '/#savollar' },
-      { label: 'Nizolar', to: '/transactions' },
+      { label: 'Xavfsizlik maslahatlari', to: '/#xavfsizlik' },
       { label: 'Aloqa', to: '/#aloqa' },
     ],
   },

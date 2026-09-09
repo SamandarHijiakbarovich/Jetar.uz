@@ -108,3 +108,14 @@ public enum PaymentMethod
     Uzum = 2,
     Apelsin = 3
 }
+
+/// <summary>Pullik ko'tarish (TOP/VIP) so'rovi holati.</summary>
+public enum BoostStatus
+{
+    /// <summary>Sotuvchi to'lov qildim deb yubordi, admin tasdig'ini kutmoqda.</summary>
+    Pending = 0,
+    /// <summary>Admin tasdiqladi — e'lon ko'tarildi.</summary>
+    Approved = 1,
+    /// <summary>Admin rad etdi (to'lov kelmagan / chek soxta).</summary>
+    Rejected = 2
+}

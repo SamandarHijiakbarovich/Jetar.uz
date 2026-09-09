@@ -50,3 +50,9 @@ public interface IRatingRepository : IRepository<Rating>
 }
 
 public interface IDisputeRepository : IRepository<Dispute> { }
+
+public interface IBoostRequestRepository : IRepository<BoostRequest>
+{
+    /// <summary>Tasdiqlangan boost so'rovlari bo'yicha jami to'lov summasi (ixtiyoriy sanadan boshlab).</summary>
+    Task<decimal> SumApprovedAmountAsync(DateTimeOffset? since = null, CancellationToken ct = default);
+}

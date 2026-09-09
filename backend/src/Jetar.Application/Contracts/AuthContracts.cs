@@ -7,6 +7,7 @@ public record RegisterRequest(
     string LastName,
     string Username,
     string Phone,
+    string Email,
     string Password,
     string? TelegramUsername);
 

@@ -16,9 +16,12 @@ internal static class Mappers
         u.Rating, u.RatingCount, u.TotalSales, u.TotalPurchases,
         u.IsVerified, u.Role, u.AvgResponseMinutes, u.CreatedAt);
 
-    public static SellerDto ToSellerDto(this User u) => new(
+    public static SellerDto ToSellerDto(this User u, bool includeContact = false) => new(
         u.Id, u.Username, u.FullName(), u.AvatarUrl, u.Rating, u.RatingCount, u.TotalSales,
-        u.IsVerified, u.AvgResponseMinutes, u.CreatedAt);
+        u.IsVerified, u.AvgResponseMinutes, u.CreatedAt,
+        u.City,
+        includeContact ? u.Phone : null,
+        includeContact ? u.TelegramUsername : null);
 
     public static PartyDto ToPartyDto(this User u) => new(u.Id, u.Username, u.AvatarUrl, u.Rating, u.IsVerified);
 
@@ -39,7 +42,7 @@ internal static class Mappers
             l.CreatedAt);
     }
 
-    public static ListingDetailDto ToDetailDto(this Listing l, IReadOnlyList<ListingCardDto> similar)
+    public static ListingDetailDto ToDetailDto(this Listing l, IReadOnlyList<ListingCardDto> similar, bool includeContact = false)
     {
         var game = GameCatalog.Get(l.GameType);
         var type = ListingTypeCatalog.Get(l.Type);
@@ -51,7 +54,7 @@ internal static class Mappers
             l.IsVerified,
             l.BoostedUntil.HasValue && l.BoostedUntil > DateTimeOffset.UtcNow,
             l.Status, l.ViewCount, l.CreatedAt,
-            l.Seller?.ToSellerDto() ?? new SellerDto(l.SellerId, "—", "", null, 0, 0, 0, false, 0, l.CreatedAt),
+            l.Seller?.ToSellerDto(includeContact) ?? new SellerDto(l.SellerId, "—", "", null, 0, 0, 0, false, 0, l.CreatedAt),
             similar);
     }
 
@@ -81,4 +84,10 @@ internal static class Mappers
     public static DisputeDto ToDto(this Dispute d) => new(
         d.Id, d.TransactionId, d.Transaction?.Number ?? 0, d.Reason, d.EvidenceUrls,
         d.Status, d.OpenedBy?.Username ?? "—", d.ResolutionNote, d.CreatedAt, d.ResolvedAt);
+
+    public static BoostRequestDto ToDto(this BoostRequest b) => new(
+        b.Id, b.ListingId, b.Listing?.Title ?? "—",
+        b.User?.Username ?? "—",
+        b.Days, b.Amount, b.ScreenshotUrl, b.Status, b.ReviewNote,
+        b.CreatedAt, b.ReviewedAt, b.Listing?.BoostedUntil);
 }

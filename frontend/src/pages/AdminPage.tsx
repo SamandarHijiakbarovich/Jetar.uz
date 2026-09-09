@@ -4,60 +4,46 @@ import { PageLoader, Spinner, StatusPill } from '../components/ui'
 import { useAuth } from '../context/auth-context'
 import { useToast } from '../context/toast-context'
 import { ApiError, api } from '../lib/api'
-import { money, shortDate } from '../lib/format'
-import { TRANSACTION_TONES } from '../lib/status'
-import type { AdminDisputeRow, AdminStats, AdminTransactionRow, PlatformSettings } from '../lib/types'
+import { money, relativeTime, shortDate } from '../lib/format'
+import { mediaUrl } from '../lib/media'
+import { LISTING_TONES } from '../lib/status'
+import type { AdminStats, BoostRequest, ListingCard, PlatformSettings } from '../lib/types'
 import AdminUsers from './AdminUsers'
 
-type AdminTab = 'dashboard' | 'users'
+type AdminTab = 'boosts' | 'dashboard' | 'users'
 
 export default function AdminPage() {
   const { user } = useAuth()
   const toast = useToast()
 
   const [stats, setStats] = useState<AdminStats | null>(null)
-  const [rows, setRows] = useState<AdminTransactionRow[]>([])
-  const [disputes, setDisputes] = useState<AdminDisputeRow[]>([])
+  const [listings, setListings] = useState<ListingCard[]>([])
   const [settings, setSettings] = useState<PlatformSettings | null>(null)
-  const [search, setSearch] = useState('')
-  const [resolving, setResolving] = useState<string | null>(null)
-  const [tab, setTab] = useState<AdminTab>('dashboard')
+  const [tab, setTab] = useState<AdminTab>('boosts')
 
-  const load = useCallback(
-    async (term?: string) => {
-      const [s, tx, d, cfg] = await Promise.all([
-        api.admin.stats(),
-        api.admin.transactions(term, 1, 20),
-        api.admin.disputes(true),
-        api.admin.settings(),
-      ])
+  const load = useCallback(async () => {
+    const [s, recent, cfg] = await Promise.all([
+      api.admin.stats(),
+      api.listings.search({ sort: 'newest', pageSize: 10 }),
+      api.admin.settings(),
+    ])
 
-      setStats(s)
-      setRows(tx.items)
-      setDisputes(d)
-      setSettings(cfg)
-    },
-    [],
-  )
+    setStats(s)
+    setListings(recent.items)
+    setSettings(cfg)
+  }, [])
 
   useEffect(() => {
     load().catch(() => toast.error('Admin ma\'lumotlari yuklanmadi.'))
   }, [load, toast])
 
-  async function resolve(dispute: AdminDisputeRow, favourBuyer: boolean) {
-    setResolving(dispute.id)
+  async function toggleVerify(listing: ListingCard) {
     try {
-      await api.admin.resolveDispute(
-        dispute.id,
-        favourBuyer,
-        favourBuyer ? 'Dalillar xaridor foydasiga.' : 'Dalillar sotuvchi foydasiga.',
-      )
-      toast.success(favourBuyer ? 'Pul xaridorga qaytarildi.' : 'Pul sotuvchiga chiqarildi.')
-      await load(search || undefined)
+      await api.admin.verifyListing(listing.id, !listing.isVerified)
+      setListings((c) => c.map((l) => (l.id === listing.id ? { ...l, isVerified: !l.isVerified } : l)))
+      toast.success(listing.isVerified ? 'Belgi olib tashlandi.' : "E'lon tekshirilgan deb belgilandi.")
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Qaror qabul qilinmadi.')
-    } finally {
-      setResolving(null)
+      toast.error(err instanceof ApiError ? err.message : 'Amal bajarilmadi.')
     }
   }
 
@@ -79,6 +65,7 @@ export default function AdminPage() {
       <div className="mb-7 flex gap-1 border-b border-white/[.08]">
         {(
           [
+            ['boosts', 'Ko\'tarish so\'rovlari'],
             ['dashboard', 'Boshqaruv paneli'],
             ['users', 'Foydalanuvchilar'],
           ] as [AdminTab, string][]
@@ -95,185 +82,216 @@ export default function AdminPage() {
         ))}
       </div>
 
+      {tab === 'boosts' && <BoostsTab />}
+
       {tab === 'users' && <AdminUsers />}
 
       {tab === 'dashboard' && (
         <>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              load(search || undefined)
-            }}
-            className="mb-6 flex gap-2.5"
-          >
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Bitim qidirish..."
-              className="field !py-2.5 text-sm sm:w-[240px]"
-              aria-label="Bitimlar bo'yicha qidiruv"
-              type="search"
+          {/* ── Ko'rsatkichlar ───────────────────────────────────────── */}
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-[18px] lg:grid-cols-4">
+            <StatCard
+              label="Jami foydalanuvchilar"
+              value={money(stats.totalUsers)}
+              delta={`${stats.usersGrowthPercent >= 0 ? '↑' : '↓'} ${Math.abs(stats.usersGrowthPercent)}% oxirgi oyda`}
             />
-            <button
-              type="submit"
-              className="tap-target flex-shrink-0 rounded-[11px] bg-brand px-5 py-2.5 text-sm font-semibold text-white"
-            >
-              Qidirish
-            </button>
-          </form>
-
-      {/* ── Ko'rsatkichlar ───────────────────────────────────────────── */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-[18px] lg:grid-cols-4">
-        <StatCard
-          label="Jami foydalanuvchilar"
-          value={money(stats.totalUsers)}
-          delta={`${stats.usersGrowthPercent >= 0 ? '↑' : '↓'} ${Math.abs(stats.usersGrowthPercent)}% oxirgi oyda`}
-        />
-        <StatCard
-          label="Jami bitimlar"
-          value={money(stats.totalTransactions)}
-          delta={`${stats.transactionsGrowthPercent >= 0 ? '↑' : '↓'} ${Math.abs(stats.transactionsGrowthPercent)}% oxirgi oyda`}
-        />
-        <StatCard
-          label="Daromad (UZS)"
-          value={money(stats.totalRevenue)}
-          color="#FF6B35"
-          delta={`${stats.revenueGrowthPercent >= 0 ? '↑' : '↓'} ${Math.abs(stats.revenueGrowthPercent)}% oxirgi oyda`}
-        />
-        <StatCard
-          label="Kutilayotgan nizolar"
-          value={String(stats.openDisputes)}
-          color={stats.openDisputes > 0 ? '#EF4444' : '#fff'}
-          delta={`${stats.disputesOver24h} tasi 24 soatdan oshgan`}
-          deltaColor={stats.disputesOver24h > 0 ? '#FCA5A5' : '#10B981'}
-        />
-      </div>
-
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        {/* ── So'nggi bitimlar ─────────────────────────────────────── */}
-        <div className="card overflow-hidden">
-          <div className="border-b border-white/[.06] px-[22px] py-5 font-display text-[17px] font-bold">
-            So'nggi bitimlar
+            <StatCard
+              label="Faol e'lonlar"
+              value={money(stats.activeListings)}
+              delta={`${stats.pendingListings} tekshiruvda · jami ${stats.totalListings}`}
+              deltaColor="#94A3B8"
+            />
+            <StatCard
+              label="Kutilayotgan boostlar"
+              value={String(stats.boostsPending)}
+              color={stats.boostsPending > 0 ? '#F59E0B' : '#fff'}
+              delta={`${stats.boostsApproved} ta tasdiqlangan`}
+              deltaColor={stats.boostsPending > 0 ? '#FCD79A' : '#10B981'}
+            />
+            <StatCard
+              label="Boost daromadi (UZS)"
+              value={money(stats.boostRevenue)}
+              color="#FF6B35"
+              delta={`${stats.boostRevenueGrowthPercent >= 0 ? '↑' : '↓'} ${Math.abs(stats.boostRevenueGrowthPercent)}% oxirgi oyda`}
+            />
           </div>
 
-          <div className="hidden grid-cols-[80px_1fr_1fr_130px_120px] gap-3 bg-white/[.03] px-[22px] py-3.5 text-[11px] font-bold tracking-[.08em] text-dim md:grid">
-            <div>ID</div>
-            <div>XARIDOR</div>
-            <div>SOTUVCHI</div>
-            <div>MIQDOR</div>
-            <div>HOLAT</div>
-          </div>
-
-          {rows.length === 0 && <div className="px-[22px] py-10 text-center text-sm text-dim">Bitim yo'q.</div>}
-
-          {rows.map((r) => (
-            <Link
-              key={r.id}
-              to={`/transactions/${r.id}`}
-              className="block border-t border-white/[.06] text-[13.5px] text-white transition-colors hover:bg-white/[.02] hover:text-white"
-            >
-              {/* Telefonda ustun sarlavhalari ko'rinmaydi, shuning uchun
-                  qator o'zi tushunarli kartochkaga aylanadi. */}
-              <div className="flex flex-col gap-1.5 px-4 py-3.5 md:hidden">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-dim">#{r.number}</span>
-                  <StatusPill tone={TRANSACTION_TONES[r.status]} className="!text-[11.5px]" />
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="truncate text-xs text-muted">
-                    @{r.buyerUsername} → @{r.sellerUsername}
-                  </span>
-                  <span className="flex-shrink-0 font-display font-semibold">{money(r.amount)}</span>
-                </div>
+          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+            {/* ── So'nggi e'lonlar ─────────────────────────────────────── */}
+            <div className="card overflow-hidden">
+              <div className="border-b border-white/[.06] px-[22px] py-5 font-display text-[17px] font-bold">
+                So'nggi e'lonlar
               </div>
 
-              <div className="hidden grid-cols-[80px_1fr_1fr_130px_120px] items-center gap-3 px-[22px] py-[15px] md:grid">
-                <div className="font-mono text-dim">#{r.number}</div>
-                <div className="truncate">@{r.buyerUsername}</div>
-                <div className="truncate">@{r.sellerUsername}</div>
-                <div className="font-display font-semibold">{money(r.amount)}</div>
-                <div>
-                  <StatusPill tone={TRANSACTION_TONES[r.status]} className="!text-[11.5px]" />
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              {listings.length === 0 && (
+                <div className="px-[22px] py-10 text-center text-sm text-dim">E'lon yo'q.</div>
+              )}
 
-        <div className="flex flex-col gap-5">
-          {/* ── Nizolar ───────────────────────────────────────────── */}
-          <div className="overflow-hidden rounded-card border border-danger/25 bg-danger/[.05]">
-            <div className="flex items-center justify-between px-[22px] py-5 font-display text-[17px] font-bold">
-              Nizolar
-              <span className="rounded-full bg-danger px-2.5 py-[3px] text-xs">{disputes.length}</span>
-            </div>
-
-            {disputes.length === 0 && (
-              <div className="px-[22px] pb-6 text-sm text-muted">Ochiq nizolar yo'q. 🎉</div>
-            )}
-
-            {disputes.map((d) => (
-              <div key={d.id} className="border-t border-danger/15 px-[22px] py-4">
-                <div className="mb-1.5 flex items-center justify-between">
-                  <Link to={`/transactions/${d.transactionId}`} className="font-mono text-[13px] text-muted hover:text-brand">
-                    #{d.transactionNumber}
+              {listings.map((l) => (
+                <div
+                  key={l.id}
+                  className="flex items-center gap-3 border-t border-white/[.06] px-4 py-3 sm:px-[22px]"
+                >
+                  <Link to={`/listings/${l.id}`} className="flex min-w-0 flex-1 items-center gap-3 text-white hover:text-white">
+                    <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-[9px] bg-white/[.05] text-lg">
+                      {l.gameGlyph}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="line-clamp-1 text-[13.5px] font-semibold">{l.title}</span>
+                      <span className="text-xs text-dim">
+                        @{l.sellerUsername} · {money(l.price)} · {relativeTime(l.createdAt)}
+                      </span>
+                    </span>
                   </Link>
-                  <span className={`text-xs ${d.ageHours > 24 ? 'text-danger-fg' : 'text-muted'}`}>
-                    {Math.round(d.ageHours)} soat
-                  </span>
-                </div>
 
-                <div className="mb-2.5 text-sm leading-relaxed">{d.reason}</div>
+                  <StatusPill tone={LISTING_TONES[l.status]} className="!hidden !text-[11px] sm:!inline-block" />
 
-                <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => resolve(d, true)}
-                    disabled={resolving === d.id}
-                    className="rounded-[9px] border border-info/40 px-3.5 py-[7px] text-[13px] font-semibold text-info-fg transition-colors hover:bg-info hover:text-white"
+                    onClick={() => toggleVerify(l)}
+                    className={`flex-shrink-0 rounded-[9px] border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                      l.isVerified
+                        ? 'border-success/40 bg-success/[.10] text-success-fg'
+                        : 'border-white/[.14] text-muted hover:border-brand hover:text-brand'
+                    }`}
+                    title={l.isVerified ? 'Tekshirilgan' : 'Tekshirilgan deb belgilash'}
                   >
-                    {resolving === d.id ? <Spinner size={14} /> : 'Xaridor foydasiga'}
-                  </button>
-                  <button
-                    onClick={() => resolve(d, false)}
-                    disabled={resolving === d.id}
-                    className="rounded-[9px] border border-success/40 px-3.5 py-[7px] text-[13px] font-semibold text-success-fg transition-colors hover:bg-success hover:text-white"
-                  >
-                    Sotuvchi foydasiga
+                    {l.isVerified ? '✓ Tekshirilgan' : 'Tasdiqlash'}
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* ── Sozlamalar ────────────────────────────────────────── */}
-          <div className="card p-6">
-            <div className="mb-[18px] font-display text-[17px] font-bold">Platforma sozlamalari</div>
-
-            <div className="flex flex-col gap-4 text-sm">
-              <SettingRow label="Escrow komissiyasi" value={`${(settings.commissionRate * 100).toFixed(0)}%`} valueColor="#FF6B35" />
-              <SettingRow label="Avto-release muddati" value={`${settings.autoReleaseHours} soat`} />
-              <SettingRow label="Eng past narx" value={`${money(settings.minListingPrice)} so'm`} />
-              <SettingRow label="E'lon avto-tasdiq" value={settings.autoApproveListings ? 'Yoqilgan' : "O'chirilgan"} />
-              <SettingRow
-                label="To'lov rejimi"
-                value={settings.sandboxPayments ? 'Sandbox' : 'Jonli'}
-                valueColor={settings.sandboxPayments ? '#F59E0B' : '#10B981'}
-              />
+              ))}
             </div>
 
-            <p className="mt-5 border-t border-white/[.08] pt-4 text-xs leading-relaxed text-dim">
-              Sozlamalar <span className="font-mono text-soft">appsettings.json</span> va{' '}
-              <span className="font-mono text-soft">.env</span> orqali boshqariladi.
-            </p>
+            {/* ── Sozlamalar ────────────────────────────────────────── */}
+            <div className="card p-6">
+              <div className="mb-[18px] font-display text-[17px] font-bold">Platforma sozlamalari</div>
+
+              <div className="flex flex-col gap-4 text-sm">
+                <SettingRow
+                  label="Escrow (to'lov)"
+                  value={settings.escrowEnabled ? 'Yoqilgan' : "O'chirilgan"}
+                  valueColor={settings.escrowEnabled ? '#F59E0B' : '#10B981'}
+                />
+                <SettingRow
+                  label="Kontakt uchun login"
+                  value={settings.contactRequiresLogin ? 'Talab qilinadi' : 'Ochiq'}
+                />
+                <SettingRow label="Boost kartasi" value={settings.boostCardNumber} />
+                <SettingRow label="Boost tariflari" value={`${settings.boostTierCount} ta`} valueColor="#FF6B35" />
+                <SettingRow label="Eng past narx" value={`${money(settings.minListingPrice)} so'm`} />
+                <SettingRow label="E'lon avto-tasdiq" value={settings.autoApproveListings ? 'Yoqilgan' : "O'chirilgan"} />
+              </div>
+
+              <p className="mt-5 border-t border-white/[.08] pt-4 text-xs leading-relaxed text-dim">
+                Sozlamalar <span className="font-mono text-soft">appsettings.json</span> va{' '}
+                <span className="font-mono text-soft">.env</span> orqali boshqariladi.
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
 
           <p className="mt-8 text-center text-xs text-dim">
             Oxirgi yangilanish: {shortDate(new Date().toISOString())}
           </p>
         </>
       )}
+    </div>
+  )
+}
+
+function BoostsTab() {
+  const toast = useToast()
+  const [items, setItems] = useState<BoostRequest[] | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  function load() {
+    api.admin
+      .boosts()
+      .then(setItems)
+      .catch(() => toast.error('Ko\'tarish so\'rovlari yuklanmadi.'))
+  }
+
+  useEffect(load, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function approve(id: string) {
+    setBusy(id)
+    try {
+      await api.admin.approveBoost(id)
+      toast.success('E\'lon ko\'tarildi.')
+      setItems((c) => (c ?? []).filter((b) => b.id !== id))
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Amal bajarilmadi.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function reject(id: string) {
+    const note = window.prompt('Rad etish sababi (ixtiyoriy):') ?? undefined
+    setBusy(id)
+    try {
+      await api.admin.rejectBoost(id, note)
+      toast.success('So\'rov rad etildi.')
+      setItems((c) => (c ?? []).filter((b) => b.id !== id))
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Amal bajarilmadi.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  if (items === null) return <PageLoader label="Yuklanmoqda…" />
+
+  if (items.length === 0) {
+    return (
+      <div className="card px-6 py-16 text-center">
+        <div className="mb-3 text-4xl">✅</div>
+        <h3 className="font-display text-xl font-bold">Kutilayotgan so'rov yo'q</h3>
+        <p className="mt-2 text-sm text-muted">Yangi ko'tarish so'rovlari shu yerda paydo bo'ladi.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {items.map((b) => (
+        <div key={b.id} className="card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="min-w-0 flex-1">
+            <Link to={`/listings/${b.listingId}`} className="line-clamp-1 font-semibold hover:text-brand">
+              {b.listingTitle}
+            </Link>
+            <div className="mt-1 text-[13px] text-muted">
+              @{b.sellerUsername} · {b.days} kun ·{' '}
+              <strong className="font-display text-brand">{money(b.amount)} so'm</strong> · {relativeTime(b.createdAt)}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {b.screenshotUrl && (
+              <a
+                href={mediaUrl(b.screenshotUrl) ?? '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-[9px] border border-white/[.14] px-3 py-2 text-[13px] font-semibold text-muted hover:border-brand hover:text-brand"
+              >
+                📎 Chek
+              </a>
+            )}
+            <button
+              onClick={() => reject(b.id)}
+              disabled={busy === b.id}
+              className="rounded-[9px] border border-danger/40 px-3.5 py-2 text-[13px] font-semibold text-danger-fg transition-colors hover:bg-danger hover:text-white"
+            >
+              Rad etish
+            </button>
+            <button
+              onClick={() => approve(b.id)}
+              disabled={busy === b.id}
+              className="rounded-[9px] border border-success/40 px-3.5 py-2 text-[13px] font-semibold text-success-fg transition-colors hover:bg-success hover:text-white"
+            >
+              {busy === b.id ? <Spinner size={14} /> : 'Tasdiqlash'}
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -309,9 +327,9 @@ function StatCard({
 
 function SettingRow({ label, value, valueColor = '#fff' }: { label: string; value: string; valueColor?: string }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-3">
       <span className="text-muted">{label}</span>
-      <span className="font-display font-bold" style={{ color: valueColor }}>
+      <span className="truncate font-display font-bold" style={{ color: valueColor }}>
         {value}
       </span>
     </div>

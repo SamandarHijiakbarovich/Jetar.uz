@@ -6,7 +6,6 @@ import { Avatar } from './ui'
 const NAV = [
   { to: '/', label: 'Bosh sahifa', end: true },
   { to: '/listings', label: "E'lonlar" },
-  { to: '/transactions', label: 'Bitimlarim', auth: true },
   { to: '/create', label: "E'lon joylash", auth: true },
 ]
 

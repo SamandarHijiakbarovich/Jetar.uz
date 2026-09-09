@@ -71,9 +71,11 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
 
         b.Property(x => x.Comment).HasMaxLength(1000);
 
+        // Transaction endi ixtiyoriy — to'g'ridan-to'g'ri baholarda null bo'ladi.
         b.HasOne(x => x.Transaction)
             .WithMany(t => t.Ratings)
             .HasForeignKey(x => x.TransactionId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Cascade);
 
         b.HasOne(x => x.FromUser)
@@ -88,7 +90,43 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
 
         // Bir bitim ichida har tomon faqat bir marta baho beradi.
         b.HasIndex(x => new { x.TransactionId, x.FromUserId }).IsUnique();
+        // To'g'ridan-to'g'ri baho (bitimsiz): bir foydalanuvchi bir sotuvchiga bir marta.
+        b.HasIndex(x => new { x.FromUserId, x.ToUserId })
+            .IsUnique()
+            .HasFilter("\"TransactionId\" IS NULL");
         b.HasIndex(x => x.ToUserId);
+    }
+}
+
+public class BoostRequestConfiguration : IEntityTypeConfiguration<BoostRequest>
+{
+    public void Configure(EntityTypeBuilder<BoostRequest> b)
+    {
+        b.ToTable("boost_requests");
+        b.HasKey(x => x.Id);
+
+        b.Property(x => x.Amount).HasPrecision(12, 0);
+        b.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(x => x.ScreenshotUrl).HasMaxLength(600);
+        b.Property(x => x.ReviewNote).HasMaxLength(1000);
+
+        b.HasOne(x => x.Listing)
+            .WithMany()
+            .HasForeignKey(x => x.ListingId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        b.HasOne(x => x.User)
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(x => x.ReviewedBy)
+            .WithMany()
+            .HasForeignKey(x => x.ReviewedById)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        b.HasIndex(x => x.Status);
+        b.HasIndex(x => new { x.ListingId, x.Status });
     }
 }
 

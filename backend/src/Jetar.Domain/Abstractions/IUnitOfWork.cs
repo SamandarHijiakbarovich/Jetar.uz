@@ -14,6 +14,7 @@ public interface IUnitOfWork
     IMessageRepository Messages { get; }
     IRatingRepository Ratings { get; }
     IDisputeRepository Disputes { get; }
+    IBoostRequestRepository BoostRequests { get; }
 
     /// <summary>Kuzatilgan barcha o'zgarishlarni bazaga yozadi. O'zgargan qatorlar sonini qaytaradi.</summary>
     Task<int> SaveChangesAsync(CancellationToken ct = default);

@@ -20,7 +20,16 @@ public class PlatformOptions
 {
     public const string SectionName = "Platform";
 
-    /// <summary>Escrow komissiyasi. Dizaynda 8% ko'rsatilgan.</summary>
+    /// <summary>
+    /// Escrow (kafolatli to'lov) rejimi. Yangi modelda platforma pulga aralashmaydi —
+    /// shu bayroq false bo'lsa barcha escrow/to'lov/bitim endpoint'lari 410 qaytaradi.
+    /// </summary>
+    public bool EscrowEnabled { get; set; } = false;
+
+    /// <summary>Sotuvchi kontaktini (telefon/Telegram) faqat tizimga kirganlar ko'radimi.</summary>
+    public bool ContactRequiresLogin { get; set; } = true;
+
+    /// <summary>Escrow komissiyasi. Dizaynda 8% ko'rsatilgan. (Escrow o'chirilganda ishlatilmaydi.)</summary>
     public decimal CommissionRate { get; set; } = 0.08m;
 
     /// <summary>Xaridor javob bermasa, escrow shuncha soatdan keyin avtomatik sotuvchiga chiqadi.</summary>
@@ -37,6 +46,30 @@ public class PlatformOptions
 
     /// <summary>Yangi e'lon moderator tasdig'isiz darhol efirga chiqsinmi (MVP uchun true).</summary>
     public bool AutoApproveListings { get; set; } = true;
+
+    /// <summary>Pullik ko'tarish (TOP/VIP) sozlamalari.</summary>
+    public BoostSettings Boost { get; set; } = new();
+
+    public class BoostSettings
+    {
+        /// <summary>Sotuvchi to'lovni shu kartaga tashlaydi.</summary>
+        public string CardNumber { get; set; } = "8600 0000 0000 0000";
+        public string CardHolder { get; set; } = "JETAR";
+
+        /// <summary>
+        /// Ko'tarish tariflari — muddat va narx. Qiymatlar appsettings.json "Platform:Boost:Tiers"
+        /// dan keladi. (Bu yerda ro'yxatni oldindan to'ldirmaymiz: .NET config bog'lovchisi
+        /// ro'yxatga qo'shib yuboradi va tariflar takrorlanib qoladi.)
+        /// </summary>
+        public List<BoostTier> Tiers { get; set; } = new();
+    }
+
+    public class BoostTier
+    {
+        public int Days { get; set; }
+        public decimal Price { get; set; }
+        public string Label { get; set; } = string.Empty;
+    }
 }
 
 /// <summary>To'lov provayderlari sozlamalari — appsettings.json "Payments" bo'limi.</summary>

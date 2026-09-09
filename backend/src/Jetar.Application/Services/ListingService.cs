@@ -61,7 +61,10 @@ public class ListingService : IListingService
 
         var similar = await _uow.Listings.ListAsync(new SimilarListingsSpec(listing.GameType, listing.Id, 3), ct);
 
-        return listing.ToDetailDto(similar.Select(l => l.ToCardDto()).ToList());
+        // Kontakt (telefon/Telegram) spamga qarshi faqat tizimga kirganlarga ko'rsatiladi.
+        var includeContact = viewerId.HasValue || !_platform.ContactRequiresLogin;
+
+        return listing.ToDetailDto(similar.Select(l => l.ToCardDto()).ToList(), includeContact);
     }
 
     public async Task<ListingDetailDto> CreateAsync(Guid sellerId, CreateListingRequest r, CancellationToken ct = default)

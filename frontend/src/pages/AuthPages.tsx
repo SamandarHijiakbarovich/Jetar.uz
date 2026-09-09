@@ -129,6 +129,7 @@ export function RegisterPage() {
     lastName: '',
     username: '',
     phone: '+998 ',
+    email: '',
     password: '',
     telegramUsername: '',
   })
@@ -147,6 +148,11 @@ export function RegisterPage() {
       return
     }
 
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
+      toast.error('Email manzilini to‘g‘ri kiriting.')
+      return
+    }
+
     if (form.password.length < 6) {
       toast.error("Parol kamida 6 belgidan iborat bo'lsin.")
       return
@@ -159,6 +165,7 @@ export function RegisterPage() {
         lastName: form.lastName.trim(),
         username: form.username.trim(),
         phone: form.phone.trim(),
+        email: form.email.trim(),
         password: form.password,
         telegramUsername: form.telegramUsername.trim() || undefined,
       })
@@ -235,6 +242,19 @@ export function RegisterPage() {
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             placeholder="+998 90 123 45 67"
             autoComplete="tel"
+            required
+            className="field"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-[7px] block text-[13px] text-muted">Email</span>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="alisher@gmail.com"
+            autoComplete="email"
             required
             className="field"
           />

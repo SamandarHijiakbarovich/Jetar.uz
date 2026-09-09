@@ -1,26 +1,35 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import BoostModal from '../components/BoostModal'
 import GameArt from '../components/GameArt'
 import ListingCard from '../components/ListingCard'
 import { gameImage } from '../lib/games'
-import { Avatar, EscrowNote, PageLoader, Spinner, Stars } from '../components/ui'
+import { Avatar, PageLoader, Stars } from '../components/ui'
 import { useAuth } from '../context/auth-context'
-import { useToast } from '../context/toast-context'
-import { ApiError, api } from '../lib/api'
+import { api } from '../lib/api'
 import { money, relativeTime } from '../lib/format'
 import { mediaUrl } from '../lib/media'
 import type { ListingDetail } from '../lib/types'
+
+/** Telefon raqamini tel: uchun tozalaydi (+998...). */
+function telHref(phone: string) {
+  const cleaned = phone.replace(/[^\d+]/g, '')
+  return cleaned.startsWith('+') ? cleaned : `+${cleaned}`
+}
+
+function tgHref(username: string) {
+  return `https://t.me/${username.replace(/^@/, '')}`
+}
 
 export default function ListingDetailPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const toast = useToast()
 
   const [listing, setListing] = useState<ListingDetail | null>(null)
   const [notFound, setNotFound] = useState(false)
-  const [buying, setBuying] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
+  const [boostOpen, setBoostOpen] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -37,23 +46,6 @@ export default function ListingDetailPage() {
       alive = false
     }
   }, [id])
-
-  async function handleBuy() {
-    if (!user) {
-      navigate('/login', { state: { from: `/listings/${id}` } })
-      return
-    }
-
-    setBuying(true)
-    try {
-      const tx = await api.transactions.initiate(id)
-      navigate(`/checkout/${tx.id}`)
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Bitimni ochib bo‘lmadi.')
-    } finally {
-      setBuying(false)
-    }
-  }
 
   if (notFound) {
     return (
@@ -72,9 +64,87 @@ export default function ListingDetailPage() {
   const isOwn = user?.id === listing.seller.id
   const isAvailable = listing.status === 'Active'
   const cover = listing.images[activeImage] ?? null
+  const phone = listing.seller.phone
+  const telegram = listing.seller.telegramUsername
+  const hasContact = Boolean(phone || telegram)
+
+  /** O'ng paneldagi asosiy harakat bloki (kompyuter va telefon uchun bir xil mantiq). */
+  function ActionBlock() {
+    if (isOwn) {
+      return (
+        <>
+          <button
+            onClick={() => setBoostOpen(true)}
+            className="btn-primary mb-3 flex w-full items-center justify-center gap-2 py-4 text-base shadow-brand-sm"
+          >
+            🚀 TOP ga chiqarish
+          </button>
+          <Link to="/profile" className="btn-ghost block w-full py-3.5 text-center">
+            E'lonlarim
+          </Link>
+          {listing!.isBoosted && (
+            <div className="mt-3 rounded-[12px] border border-brand/30 bg-brand/[.08] px-4 py-2.5 text-center text-[13px] font-semibold text-brand-300">
+              ⭐ Bu e'lon hozir TOP da
+            </div>
+          )}
+        </>
+      )
+    }
+
+    if (!isAvailable) {
+      return (
+        <div className="rounded-[14px] border border-white/[.12] bg-white/[.03] py-4 text-center text-sm font-semibold text-muted">
+          {listing!.status === 'Sold' ? 'Sotilgan' : 'Hozir sotuvda emas'}
+        </div>
+      )
+    }
+
+    if (!user) {
+      return (
+        <>
+          <button
+            onClick={() => navigate('/login', { state: { from: `/listings/${id}` } })}
+            className="btn-primary mb-3 w-full py-4 text-base shadow-brand-sm"
+          >
+            Bog'lanish uchun kiring
+          </button>
+          <p className="text-center text-[13px] leading-relaxed text-muted">
+            Sotuvchining aloqa ma'lumotlari faqat ro'yxatdan o'tganlarga ko'rinadi.
+          </p>
+        </>
+      )
+    }
+
+    if (!hasContact) {
+      return (
+        <div className="rounded-[14px] border border-white/[.12] bg-white/[.03] py-4 text-center text-sm text-muted">
+          Sotuvchi aloqa ma'lumotini kiritmagan.
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex flex-col gap-2.5">
+        {telegram && (
+          <a
+            href={tgHref(telegram)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary flex w-full items-center justify-center gap-2 py-4 text-base shadow-brand-sm"
+          >
+            ✈ Telegram orqali yozish
+          </a>
+        )}
+        {phone && (
+          <a href={`tel:${telHref(phone)}`} className="btn-ghost flex w-full items-center justify-center gap-2 py-3.5 text-[15px]">
+            📞 {phone}
+          </a>
+        )}
+      </div>
+    )
+  }
 
   return (
-    // Telefonda pastdagi yopishgan panel kontentni yopib qolmasligi uchun qo'shimcha bo'shliq.
     <div className="page pb-32 pt-6 sm:pt-9 lg:pb-[88px]">
       <Link to="/listings" className="mb-5 inline-block text-sm font-semibold text-muted hover:text-brand sm:mb-6">
         ← Barcha e'lonlar
@@ -105,6 +175,11 @@ export default function ListingDetailPage() {
               >
                 {listing.typeGlyph} {listing.typeName}
               </span>
+              {listing.isBoosted && (
+                <span className="rounded-full border border-brand/40 bg-brand/[.16] px-3 py-1.5 text-xs font-semibold text-brand-300 backdrop-blur-md sm:text-[13px]">
+                  ⭐ TOP
+                </span>
+              )}
             </span>
           </GameArt>
 
@@ -191,48 +266,14 @@ export default function ListingDetailPage() {
 
         {/* ── Yon panel ────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 lg:sticky lg:top-[92px]">
-          {/* Telefonda narx va "Sotib olish" pastdagi yopishgan panelda — bu blok yashiriladi. */}
+          {/* Telefonda narx va harakat pastdagi yopishgan panelda — bu blok yashiriladi. */}
           <div className="hidden rounded-[20px] border border-white/[.10] bg-surface p-[26px] lg:block">
             <div className="mb-1.5 text-[13px] text-muted">Narx</div>
             <div className="mb-5 font-display text-[38px] font-extrabold tracking-[-.02em] text-brand">
               {money(listing.price)} <span className="text-[17px] text-muted">UZS</span>
             </div>
 
-            {isOwn ? (
-              <Link to="/profile" className="btn-ghost block w-full py-3.5 text-center">
-                Bu sizning e'loningiz
-              </Link>
-            ) : !isAvailable ? (
-              <div className="rounded-[14px] border border-white/[.12] bg-white/[.03] py-4 text-center text-sm font-semibold text-muted">
-                {listing.status === 'Sold' ? 'Sotilgan' : 'Hozir sotuvda emas'}
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={handleBuy}
-                  disabled={buying}
-                  className="btn-primary mb-3 flex w-full items-center justify-center gap-2 py-4 text-base shadow-brand-sm"
-                >
-                  {buying ? <Spinner size={18} /> : 'Sotib olish'}
-                </button>
-
-                <button
-                  onClick={() =>
-                    toast.info("Sotuvchi bilan yozishma bitim ochilgandan keyin faollashadi — bu escrow talabi.")
-                  }
-                  className="btn-ghost w-full py-3.5 text-[15px]"
-                >
-                  💬 Sotuvchiga xabar yozish
-                </button>
-              </>
-            )}
-
-            <div className="mt-5">
-              <EscrowNote>
-                Bitim Escrow kafolati bilan himoyalangan. Pulingiz siz tasdiqlamaguningizcha sotuvchiga
-                o'tmaydi.
-              </EscrowNote>
-            </div>
+            <ActionBlock />
           </div>
 
           <div className="card p-[22px]">
@@ -252,7 +293,7 @@ export default function ListingDetailPage() {
                   <div className="mt-0.5 text-[13px] text-soft">{listing.seller.fullName}</div>
                 )}
                 <div className="mt-[3px]">
-                  <Stars rating={listing.seller.rating} />
+                  <Stars rating={listing.seller.rating} count={listing.seller.ratingCount} />
                   <span className="ml-1 text-[13px] text-muted">· {listing.seller.totalSales} bitim</span>
                 </div>
               </div>
@@ -270,11 +311,10 @@ export default function ListingDetailPage() {
             </div>
           </div>
 
-          {/* Escrow eslatmasi telefonda ham ko'rinishi kerak. */}
-          <div className="lg:hidden">
-            <EscrowNote>
-              Bitim Escrow kafolati bilan himoyalangan. Pulingiz siz tasdiqlamaguningizcha sotuvchiga o'tmaydi.
-            </EscrowNote>
+          {/* Xavfsizlik eslatmasi — to'g'ridan-to'g'ri savdo uchun. */}
+          <div className="rounded-xl border border-warning/[.22] bg-warning/[.06] p-3.5 text-[13px] leading-[1.55] text-[#F5D08C]">
+            ⚠️ Jetar to'lovga aralashmaydi. Akkauntni ko'rmasdan oldindan pul o'tkazmang — firibgarlikdan
+            ehtiyot bo'ling.
           </div>
         </div>
       </div>
@@ -289,36 +329,50 @@ export default function ListingDetailPage() {
             </div>
           </div>
 
-          {isOwn ? (
-            <Link to="/profile" className="btn-ghost tap-target flex-shrink-0 px-5 py-3 text-sm">
-              E'lonlarim
-            </Link>
-          ) : !isAvailable ? (
-            <div className="flex-shrink-0 rounded-[14px] border border-white/[.12] bg-white/[.03] px-5 py-3 text-sm font-semibold text-muted">
-              {listing.status === 'Sold' ? 'Sotilgan' : 'Sotuvda emas'}
-            </div>
-          ) : (
-            <>
+          <div className="flex-shrink-0">
+            {isOwn ? (
               <button
-                onClick={() =>
-                  toast.info("Sotuvchi bilan yozishma bitim ochilgandan keyin faollashadi — bu escrow talabi.")
-                }
-                className="btn-ghost tap-target flex-shrink-0 px-4 py-3 text-lg"
-                aria-label="Sotuvchiga xabar yozish"
+                onClick={() => setBoostOpen(true)}
+                className="btn-primary tap-target flex items-center justify-center px-6 py-3.5 text-[15px]"
               >
-                💬
+                🚀 TOP ga
               </button>
+            ) : !isAvailable ? (
+              <div className="rounded-[14px] border border-white/[.12] bg-white/[.03] px-5 py-3 text-sm font-semibold text-muted">
+                {listing.status === 'Sold' ? 'Sotilgan' : 'Sotuvda emas'}
+              </div>
+            ) : !user ? (
               <button
-                onClick={handleBuy}
-                disabled={buying}
-                className="btn-primary tap-target flex flex-shrink-0 items-center justify-center px-7 py-3.5 text-[15px]"
+                onClick={() => navigate('/login', { state: { from: `/listings/${id}` } })}
+                className="btn-primary tap-target px-6 py-3.5 text-[15px]"
               >
-                {buying ? <Spinner size={18} /> : 'Sotib olish'}
+                Bog'lanish
               </button>
-            </>
-          )}
+            ) : telegram ? (
+              <a
+                href={tgHref(telegram)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary tap-target flex items-center justify-center px-6 py-3.5 text-[15px]"
+              >
+                ✈ Yozish
+              </a>
+            ) : phone ? (
+              <a href={`tel:${telHref(phone)}`} className="btn-primary tap-target flex items-center justify-center px-6 py-3.5 text-[15px]">
+                📞 Qo'ng'iroq
+              </a>
+            ) : (
+              <div className="rounded-[14px] border border-white/[.12] bg-white/[.03] px-5 py-3 text-sm text-muted">
+                Aloqa yo'q
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {boostOpen && (
+        <BoostModal listingId={listing.id} listingTitle={listing.title} onClose={() => setBoostOpen(false)} />
+      )}
     </div>
   )
 }
