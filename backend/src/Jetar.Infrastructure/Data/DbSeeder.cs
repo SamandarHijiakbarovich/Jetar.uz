@@ -1,3 +1,5 @@
+using Jetar.Application.Options;
+using Jetar.Application.Services;
 using Jetar.Domain.Entities;
 using Jetar.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +14,69 @@ namespace Jetar.Infrastructure.Data;
 public static class DbSeeder
 {
     public const string DemoPassword = "jetar123";
+
+    /// <summary>
+    /// Boshlang'ich admin akkauntini kafolatlaydi. Demo seed'dan mustaqil, har ishga
+    /// tushishda ishlaydi: telefon/username bo'yicha topadi — yo'q bo'lsa Admin yaratadi,
+    /// mavjud bo'lsa Admin roliga ko'taradi. Parol faqat yaratishda o'rnatiladi.
+    /// </summary>
+    public static async Task EnsureAdminAsync(AppDbContext db, AdminSeedOptions opt, ILogger logger, CancellationToken ct = default)
+    {
+        if (!opt.Enabled) return;
+
+        if (string.IsNullOrWhiteSpace(opt.Phone) || string.IsNullOrWhiteSpace(opt.Password))
+        {
+            logger.LogWarning("Admin bootstrap o'tkazib yuborildi: telefon yoki parol berilmagan (Admin bo'limi).");
+            return;
+        }
+
+        var phone = AuthService.NormalizePhone(opt.Phone);
+        var username = opt.Username.Trim().TrimStart('@').ToLowerInvariant();
+
+        var existing = await db.Users.FirstOrDefaultAsync(u => u.Phone == phone || u.Username == username, ct);
+
+        if (existing != null)
+        {
+            var changed = false;
+
+            if (existing.Role != UserRole.Admin)
+            {
+                existing.Role = UserRole.Admin;
+                existing.IsBlocked = false;
+                changed = true;
+                logger.LogInformation("Admin bootstrap: @{Username} Admin roliga ko'tarildi.", existing.Username);
+            }
+
+            if (opt.ForcePassword)
+            {
+                existing.PasswordHash = BCrypt.Net.BCrypt.HashPassword(opt.Password);
+                changed = true;
+                logger.LogWarning("Admin bootstrap: @{Username} paroli config'dan majburan tiklandi.", existing.Username);
+            }
+
+            if (changed) await db.SaveChangesAsync(ct);
+            return;
+        }
+
+        var admin = new User
+        {
+            Username = username,
+            FirstName = opt.FirstName.Trim(),
+            LastName = opt.LastName.Trim(),
+            Phone = phone,
+            Email = string.IsNullOrWhiteSpace(opt.Email) ? null : opt.Email.Trim().ToLowerInvariant(),
+            TelegramUsername = "@" + username,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(opt.Password),
+            Role = UserRole.Admin,
+            IsVerified = true,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await db.Users.AddAsync(admin, ct);
+        await db.SaveChangesAsync(ct);
+
+        logger.LogInformation("Admin bootstrap: @{Username} ({Phone}) yaratildi.", admin.Username, phone);
+    }
 
     public static async Task SeedAsync(AppDbContext db, ILogger logger, CancellationToken ct = default)
     {

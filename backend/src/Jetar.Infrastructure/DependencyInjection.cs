@@ -19,6 +19,7 @@ public static class DependencyInjection
         // ── Sozlamalar ────────────────────────────────────────────────────
         services.Configure<JwtOptions>(config.GetSection(JwtOptions.SectionName));
         services.Configure<PlatformOptions>(config.GetSection(PlatformOptions.SectionName));
+        services.Configure<AdminSeedOptions>(config.GetSection(AdminSeedOptions.SectionName));
         services.Configure<PaymentOptions>(config.GetSection(PaymentOptions.SectionName));
         services.Configure<StorageOptions>(config.GetSection(StorageOptions.SectionName));
         services.Configure<TelegramOptions>(config.GetSection(TelegramOptions.SectionName));

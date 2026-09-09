@@ -72,6 +72,33 @@ public class PlatformOptions
     }
 }
 
+/// <summary>
+/// Boshlang'ich admin akkaunti — appsettings.json "Admin" bo'limi. Har ishga tushishda
+/// tekshiriladi: yo'q bo'lsa yaratiladi, mavjud bo'lsa Admin roliga ko'tariladi. Prodda
+/// parol JETAR_Admin__Password muhit o'zgaruvchisi orqali beriladi.
+/// </summary>
+public class AdminSeedOptions
+{
+    public const string SectionName = "Admin";
+
+    public bool Enabled { get; set; } = true;
+    public string FirstName { get; set; } = "Admin";
+    public string LastName { get; set; } = string.Empty;
+    public string Username { get; set; } = "admin";
+    public string Phone { get; set; } = string.Empty;
+    public string? Email { get; set; }
+
+    /// <summary>Bo'sh bo'lsa admin yaratilmaydi (xavfsizlik). Prodda env orqali bering.</summary>
+    public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// true bo'lsa har ishga tushishda admin paroli config'dagi qiymatga majburan
+    /// o'rnatiladi (parolni tiklash uchun). Odatda false — foydalanuvchi o'zgartirgan
+    /// parol saqlanib qolsin.
+    /// </summary>
+    public bool ForcePassword { get; set; }
+}
+
 /// <summary>To'lov provayderlari sozlamalari — appsettings.json "Payments" bo'limi.</summary>
 public class PaymentOptions
 {

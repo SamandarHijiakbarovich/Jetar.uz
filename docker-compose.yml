@@ -70,6 +70,22 @@ services:
       JETAR_ConnectionStrings__Postgres: 'Host=postgres;Port=5432;Database=${POSTGRES_DB:-jetar};Username=${POSTGRES_USER:-jetar};Password=${POSTGRES_PASSWORD:-jetar}'
       JETAR_ConnectionStrings__Redis: 'redis:6379'
       JETAR_Jwt__Secret: ${JWT_SECRET:?JWT_SECRET .env faylida belgilanishi shart}
+      # Prodda demo ma'lumot yuklamaymiz; migratsiyalar avtomatik qo'llanadi.
+      JETAR_Database__Seed: ${DB_SEED:-false}
+      JETAR_Database__AutoMigrate: ${DB_AUTOMIGRATE:-true}
+      # Yangi model: to'lov o'chirilgan (platforma pulga aralashmaydi).
+      JETAR_Platform__EscrowEnabled: ${ESCROW_ENABLED:-false}
+      # Pullik ko'tarish (TOP) — karta rekvizitlari .env dan.
+      JETAR_Platform__Boost__CardNumber: ${BOOST_CARD_NUMBER:-8600 0000 0000 0000}
+      JETAR_Platform__Boost__CardHolder: ${BOOST_CARD_HOLDER:-JETAR}
+      # Boshlang'ich admin akkaunti.
+      JETAR_Admin__FirstName: ${ADMIN_FIRST_NAME:-Samandar}
+      JETAR_Admin__LastName: ${ADMIN_LAST_NAME:-Mamasoatov}
+      JETAR_Admin__Username: ${ADMIN_USERNAME:-samandar}
+      JETAR_Admin__Phone: ${ADMIN_PHONE:-+998937650083}
+      JETAR_Admin__Email: ${ADMIN_EMAIL:-samandar@jetar.uz}
+      JETAR_Admin__Password: ${ADMIN_PASSWORD:?ADMIN_PASSWORD .env faylida belgilanishi shart}
+      JETAR_Admin__ForcePassword: ${ADMIN_FORCE_PASSWORD:-false}
       JETAR_Platform__CommissionRate: ${COMMISSION_RATE:-0.08}
       JETAR_Platform__AutoReleaseHours: ${AUTO_RELEASE_HOURS:-72}
       JETAR_Payments__SandboxMode: ${PAYMENTS_SANDBOX:-true}

@@ -13,6 +13,7 @@ using Jetar.Infrastructure.Services;
 using Jetar.Application.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -144,6 +145,10 @@ await using (var scope = app.Services.CreateAsyncScope())
 
     if (app.Configuration.GetValue("Database:Seed", true))
         await DbSeeder.SeedAsync(db, logger);
+
+    // Admin akkaunti — demo seed'dan mustaqil, har doim tekshiriladi (prodda ham).
+    var adminOptions = scope.ServiceProvider.GetRequiredService<IOptions<AdminSeedOptions>>().Value;
+    await DbSeeder.EnsureAdminAsync(db, adminOptions, logger);
 }
 
 // ── Pipeline ───────────────────────────────────────────────────────────────
