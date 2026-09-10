@@ -1,0 +1,8 @@
+# Caddy — avtomatik HTTPS (Let's Encrypt). Domen va email .env dan keladi.
+# HTTP (80) avtomatik HTTPS (443) ga yo'naltiriladi.
+{$DOMAIN} {
+	encode gzip
+	# Ichki web (nginx) konteyneriga uzatamiz — u SPA + /api ni beradi.
+	reverse_proxy web:80
+	tls {$LETSENCRYPT_EMAIL}
+}

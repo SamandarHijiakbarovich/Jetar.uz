@@ -114,11 +114,32 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+    # Port ochilmaydi — tashqi trafik Caddy orqali (HTTPS) keladi.
+    expose:
+      - '80'
+
+  # ── Caddy: avtomatik HTTPS (Let's Encrypt) ────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: jetar-caddy
+    restart: unless-stopped
+    depends_on:
+      - web
     ports:
-      - '${WEB_PORT:-5173}:80'
+      - '80:80'
+      - '443:443'
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN .env faylida belgilanishi shart}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-admin@jetar.uz}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
 
 volumes:
   postgres-data:
   redis-data:
   minio-data:
   uploads:
+  caddy-data:
+  caddy-config:
