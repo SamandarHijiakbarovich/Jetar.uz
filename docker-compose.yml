@@ -107,8 +107,9 @@ services:
   web:
     build:
       context: ./frontend
+      # Bo'sh => frontend nisbiy "/api" chaqiradi (nginx backendga uzatadi, bitta domen).
       args:
-        VITE_API_URL: ${PUBLIC_API_URL:-http://localhost:5080}
+        VITE_API_URL: ${PUBLIC_API_URL-}
     container_name: jetar-web
     restart: unless-stopped
     depends_on:
