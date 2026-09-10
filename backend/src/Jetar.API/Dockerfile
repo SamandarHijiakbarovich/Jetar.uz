@@ -4,8 +4,10 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Avval faqat loyiha fayllari — restore keshini saqlash uchun.
+# 4-qatlam: Domain -> Application -> Infrastructure -> API.
 COPY Directory.Build.props ./
-COPY src/Jetar.Core/Jetar.Core.csproj src/Jetar.Core/
+COPY src/Jetar.Domain/Jetar.Domain.csproj src/Jetar.Domain/
+COPY src/Jetar.Application/Jetar.Application.csproj src/Jetar.Application/
 COPY src/Jetar.Infrastructure/Jetar.Infrastructure.csproj src/Jetar.Infrastructure/
 COPY src/Jetar.API/Jetar.API.csproj src/Jetar.API/
 RUN dotnet restore src/Jetar.API/Jetar.API.csproj
