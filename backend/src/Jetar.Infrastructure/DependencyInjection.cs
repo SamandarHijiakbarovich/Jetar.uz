@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.Configure<PaymentOptions>(config.GetSection(PaymentOptions.SectionName));
         services.Configure<StorageOptions>(config.GetSection(StorageOptions.SectionName));
         services.Configure<TelegramOptions>(config.GetSection(TelegramOptions.SectionName));
+        services.Configure<EmailOptions>(config.GetSection(EmailOptions.SectionName));
 
         // ── Ma'lumotlar bazasi ────────────────────────────────────────────
         var connection = config.GetConnectionString("Postgres")
@@ -81,6 +82,8 @@ public static class DependencyInjection
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.AddScoped<IVerificationCodeStore, DistributedCacheVerificationStore>();
 
         // SignalR ulanmagan bo'lsa chat baribir ishlaydi (API qatlami buni almashtiradi).
         services.AddSingleton<IChatBroadcaster, NullChatBroadcaster>();

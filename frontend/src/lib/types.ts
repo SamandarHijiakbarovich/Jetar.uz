@@ -58,6 +58,15 @@ export interface AuthResponse {
   user: User
 }
 
+/** Ro'yxatdan o'tish 1-bosqichi: emailga kod yuborildi (akkaunt hali yaratilmagan). */
+export interface RegistrationStart {
+  email: string
+  emailSent: boolean
+  /** Faqat test rejimida to'ladi (email o'chirilgan) — kodni ekranda ko'rsatish uchun. */
+  devCode?: string | null
+  expiresInMinutes: number
+}
+
 export interface ListingCard {
   id: string
   title: string

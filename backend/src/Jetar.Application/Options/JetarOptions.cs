@@ -131,6 +131,26 @@ public class PaymentOptions
     }
 }
 
+/// <summary>Email jo'natish (SMTP) — appsettings.json "Email" bo'limi.</summary>
+public class EmailOptions
+{
+    public const string SectionName = "Email";
+
+    /// <summary>false => test rejimi: email yuborilmaydi, kod log va javobda ko'rsatiladi.</summary>
+    public bool Enabled { get; set; }
+
+    public string Host { get; set; } = string.Empty;
+    public int Port { get; set; } = 587;
+    public bool UseSsl { get; set; } = true;
+    public string User { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string FromEmail { get; set; } = "no-reply@jetar.uz";
+    public string FromName { get; set; } = "Jetar";
+
+    /// <summary>Tasdiqlash kodi shuncha daqiqada eskiradi.</summary>
+    public int CodeExpiryMinutes { get; set; } = 10;
+}
+
 /// <summary>Fayl saqlash sozlamalari — appsettings.json "Storage" bo'limi.</summary>
 public class StorageOptions
 {

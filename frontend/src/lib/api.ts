@@ -18,6 +18,7 @@ import type {
   PaymentMethodOption,
   PlatformSettings,
   Rating,
+  RegistrationStart,
   Transaction,
   User,
   UserRole,
@@ -176,7 +177,13 @@ export const api = {
       email: string
       password: string
       telegramUsername?: string
-    }) => request<AuthResponse>('/api/auth/register', { method: 'POST', body, auth: false }),
+    }) => request<RegistrationStart>('/api/auth/register', { method: 'POST', body, auth: false }),
+
+    verifyEmail: (body: { email: string; code: string }) =>
+      request<AuthResponse>('/api/auth/verify-email', { method: 'POST', body, auth: false }),
+
+    resendCode: (email: string) =>
+      request<RegistrationStart>('/api/auth/resend-code', { method: 'POST', body: { email }, auth: false }),
 
     login: (body: { login: string; password: string }) =>
       request<AuthResponse>('/api/auth/login', { method: 'POST', body, auth: false }),

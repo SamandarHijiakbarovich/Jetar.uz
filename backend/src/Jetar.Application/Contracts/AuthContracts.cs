@@ -11,6 +11,27 @@ public record RegisterRequest(
     string Password,
     string? TelegramUsername);
 
+/// <summary>Ro'yxatdan o'tish boshlandi — emailga kod yuborildi (akkaunt hali yaratilmagan).</summary>
+public record RegistrationStartResponse(string Email, bool EmailSent, string? DevCode, int ExpiresInMinutes);
+
+/// <summary>Emailga kelgan kodni tasdiqlash — akkaunt yaratiladi.</summary>
+public record VerifyEmailRequest(string Email, string Code);
+
+/// <summary>Kodni qayta yuborish.</summary>
+public record ResendCodeRequest(string Email);
+
+/// <summary>Kesh'da vaqtincha saqlanadigan tasdiqlanmagan ro'yxat (ichki — API'ga chiqmaydi).</summary>
+public record PendingRegistration(
+    string FirstName,
+    string LastName,
+    string Username,
+    string Phone,
+    string Email,
+    string PasswordHash,
+    string? TelegramUsername,
+    string Code,
+    int Attempts);
+
 /// <summary>Kirish uchun faqat login (yoki telefon) va parol talab qilinadi.</summary>
 public record LoginRequest(string Login, string Password);
 

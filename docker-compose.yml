@@ -97,6 +97,15 @@ services:
       JETAR_Payments__Payme__SecretKey: ${PAYME_SECRET_KEY:-}
       JETAR_Telegram__Enabled: ${TELEGRAM_ENABLED:-false}
       JETAR_Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
+      # Email tasdiqlash (SMTP). Enabled=false => test rejimi (kod javobda).
+      JETAR_Email__Enabled: ${EMAIL_ENABLED:-false}
+      JETAR_Email__Host: ${EMAIL_HOST:-}
+      JETAR_Email__Port: ${EMAIL_PORT:-587}
+      JETAR_Email__UseSsl: ${EMAIL_USE_SSL:-true}
+      JETAR_Email__User: ${EMAIL_USER:-}
+      JETAR_Email__Password: ${EMAIL_PASSWORD:-}
+      JETAR_Email__FromEmail: ${EMAIL_FROM:-no-reply@jetar.uz}
+      JETAR_Email__FromName: ${EMAIL_FROM_NAME:-Jetar}
       JETAR_Cors__AllowedOrigins__0: ${FRONTEND_URL:-http://localhost:5173}
       JETAR_Cors__AllowedOrigins__1: http://localhost
     ports:

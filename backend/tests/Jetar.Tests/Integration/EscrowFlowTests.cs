@@ -48,13 +48,13 @@ public class EscrowFlowTests : IClassFixture<JetarWebFactory>
     [Fact]
     public async Task Bir_xil_username_bilan_ikki_marta_royxatdan_otilmaydi()
     {
+        // Birinchi foydalanuvchi to'liq ro'yxatdan o'tadi (start + verify).
+        await _factory.CreateAuthenticatedClientAsync("takror_user", "+998911110001");
+
+        // Shu username bilan qayta boshlashga urinish — kod so'rashning o'zida 409.
         var client = _factory.CreateClient();
-        var request = new RegisterRequest("Takror", "Sinovchi", "takror_user", "+998911110001", "takror@test.uz", "jetar123", null);
-
-        (await client.PostAsJsonAsync("/api/auth/register", request, Json)).EnsureSuccessStatusCode();
-
         var second = await client.PostAsJsonAsync("/api/auth/register",
-            request with { Phone = "+998911110002" }, Json);
+            new RegisterRequest("Takror", "Sinovchi", "takror_user", "+998911110002", "takror2@test.uz", "jetar123", null), Json);
 
         second.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
@@ -62,12 +62,10 @@ public class EscrowFlowTests : IClassFixture<JetarWebFactory>
     [Fact]
     public async Task Nogri_parol_bilan_kirish_401()
     {
-        var client = _factory.CreateClient();
+        // Haqiqiy foydalanuvchi yaratamiz (parol: jetar123).
+        await _factory.CreateAuthenticatedClientAsync("parol_test", "+998911110003");
 
-        await client.PostAsJsonAsync("/api/auth/register",
-            new RegisterRequest("Parol", "Sinovchi", "parol_test", "+998911110003", "parol@test.uz", "jetar123", null), Json);
-
-        var response = await client.PostAsJsonAsync("/api/auth/login",
+        var response = await _factory.CreateClient().PostAsJsonAsync("/api/auth/login",
             new LoginRequest("parol_test", "notogri"), Json);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

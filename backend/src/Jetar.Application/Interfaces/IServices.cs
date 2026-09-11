@@ -7,10 +7,35 @@ namespace Jetar.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default);
+    /// <summary>1-bosqich: ma'lumot tekshiriladi, emailga kod yuboriladi (akkaunt hali yaratilmaydi).</summary>
+    Task<RegistrationStartResponse> StartRegistrationAsync(RegisterRequest request, CancellationToken ct = default);
+
+    /// <summary>Kodni qayta yuborish.</summary>
+    Task<RegistrationStartResponse> ResendCodeAsync(ResendCodeRequest request, CancellationToken ct = default);
+
+    /// <summary>2-bosqich: kod tasdiqlanadi, akkaunt yaratiladi va token qaytariladi.</summary>
+    Task<AuthResponse> VerifyEmailAsync(VerifyEmailRequest request, CancellationToken ct = default);
+
     Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default);
     Task<AuthResponse> RefreshAsync(string refreshToken, CancellationToken ct = default);
     Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken ct = default);
+}
+
+/// <summary>Email jo'natish (SMTP). Test rejimida (o'chirilgan) faqat log qiladi.</summary>
+public interface IEmailSender
+{
+    /// <summary>false bo'lsa haqiqiy email yuborilmaydi (test rejimi) — kod javobda ko'rsatiladi.</summary>
+    bool Enabled { get; }
+
+    Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken ct = default);
+}
+
+/// <summary>Tasdiqlanmagan ro'yxat ma'lumotini vaqtincha saqlash (kesh: Redis yoki xotira).</summary>
+public interface IVerificationCodeStore
+{
+    Task SaveAsync(string email, PendingRegistration data, TimeSpan ttl, CancellationToken ct = default);
+    Task<PendingRegistration?> GetAsync(string email, CancellationToken ct = default);
+    Task RemoveAsync(string email, CancellationToken ct = default);
 }
 
 public interface ITokenService

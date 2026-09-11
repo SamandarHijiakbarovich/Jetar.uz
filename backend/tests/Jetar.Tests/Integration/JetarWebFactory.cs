@@ -86,12 +86,20 @@ public class JetarWebFactory : WebApplicationFactory<Program>
     {
         var client = CreateClient();
 
-        var response = await client.PostAsJsonAsync("/api/auth/register",
+        // 1-bosqich: kod so'rash (test rejimida kod javobda DevCode sifatida qaytadi).
+        var startResp = await client.PostAsJsonAsync("/api/auth/register",
             new RegisterRequest("Test", "Foydalanuvchi", username, phone, $"{username}@test.uz", "jetar123", null), Json);
+        startResp.EnsureSuccessStatusCode();
 
-        response.EnsureSuccessStatusCode();
+        var start = await startResp.Content.ReadFromJsonAsync<RegistrationStartResponse>(Json)
+                    ?? throw new InvalidOperationException("Ro'yxat boshlanish javobi bo'sh.");
 
-        var auth = await response.Content.ReadFromJsonAsync<AuthResponse>(Json)
+        // 2-bosqich: kodни tasdiqlash — akkaunt yaratiladi va token qaytadi.
+        var verifyResp = await client.PostAsJsonAsync("/api/auth/verify-email",
+            new VerifyEmailRequest(start.Email, start.DevCode!), Json);
+        verifyResp.EnsureSuccessStatusCode();
+
+        var auth = await verifyResp.Content.ReadFromJsonAsync<AuthResponse>(Json)
                    ?? throw new InvalidOperationException("Auth javobi bo'sh.");
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.AccessToken);

@@ -28,8 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.user
   }, [])
 
+  // 1-bosqich: kod yuboriladi, akkaunt hali yaratilmaydi.
   const register = useCallback(
-    async (data: {
+    (data: {
       firstName: string
       lastName: string
       username: string
@@ -37,14 +38,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: string
       password: string
       telegramUsername?: string
-    }) => {
-      const res = await api.auth.register(data)
-      tokenStore.set(res.accessToken, res.refreshToken)
-      setUser(res.user)
-      return res.user
-    },
+    }) => api.auth.register(data),
     [],
   )
+
+  // 2-bosqich: kod tasdiqlanadi, akkaunt yaratiladi va kiriladi.
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    const res = await api.auth.verifyEmail({ email, code })
+    tokenStore.set(res.accessToken, res.refreshToken)
+    setUser(res.user)
+    return res.user
+  }, [])
+
+  const resendCode = useCallback((email: string) => api.auth.resendCode(email), [])
 
   const logout = useCallback(() => {
     tokenStore.clear()
@@ -67,11 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isModerator: user?.role === 'Moderator' || user?.role === 'Admin',
       login,
       register,
+      verifyEmail,
+      resendCode,
       logout,
       refreshUser,
       setUser,
     }),
-    [user, loading, login, register, logout, refreshUser],
+    [user, loading, login, register, verifyEmail, resendCode, logout, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

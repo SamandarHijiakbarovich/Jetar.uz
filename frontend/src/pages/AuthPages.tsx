@@ -120,7 +120,7 @@ export function LoginPage() {
 }
 
 export function RegisterPage() {
-  const { register } = useAuth()
+  const { register, verifyEmail, resendCode } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
 
@@ -134,6 +134,11 @@ export function RegisterPage() {
     telegramUsername: '',
   })
   const [busy, setBusy] = useState(false)
+
+  // Ikki bosqich: forma -> emailga kod -> tasdiqlash.
+  const [step, setStep] = useState<'form' | 'code'>('form')
+  const [code, setCode] = useState('')
+  const [devCode, setDevCode] = useState<string | null>(null)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -160,7 +165,7 @@ export function RegisterPage() {
 
     setBusy(true)
     try {
-      const user = await register({
+      const res = await register({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         username: form.username.trim(),
@@ -170,8 +175,13 @@ export function RegisterPage() {
         telegramUsername: form.telegramUsername.trim() || undefined,
       })
 
-      toast.success(`Hisob yaratildi. Xush kelibsiz, @${user.username}!`)
-      navigate('/')
+      setDevCode(res.devCode ?? null)
+      setStep('code')
+      toast.success(
+        res.emailSent
+          ? `Tasdiqlash kodi ${res.email} ga yuborildi.`
+          : 'Kod yaratildi (test rejimi) — pastda ko\'rsatilgan.',
+      )
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Ro'yxatdan o'tishda xato.")
     } finally {
@@ -179,10 +189,89 @@ export function RegisterPage() {
     }
   }
 
+  async function verify(e: React.FormEvent) {
+    e.preventDefault()
+    if (code.trim().length !== 6) {
+      toast.error('6 xonali kodni kiriting.')
+      return
+    }
+
+    setBusy(true)
+    try {
+      const user = await verifyEmail(form.email.trim(), code.trim())
+      toast.success(`Hisob yaratildi. Xush kelibsiz, @${user.username}!`)
+      navigate('/')
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Kod tasdiqlanmadi.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function resend() {
+    setBusy(true)
+    try {
+      const res = await resendCode(form.email.trim())
+      setDevCode(res.devCode ?? null)
+      toast.success('Kod qayta yuborildi.')
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Kod yuborilmadi.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // ── 2-bosqich: kod kiritish ─────────────────────────────────────────────
+  if (step === 'code') {
+    return (
+      <AuthShell
+        title="Emailni tasdiqlang"
+        subtitle={`${form.email} manziliga 6 xonali kod yubordik. Uni kiriting.`}
+        footer={
+          <button onClick={() => setStep('form')} className="font-semibold text-brand">
+            ← Ma'lumotlarni o'zgartirish
+          </button>
+        }
+      >
+        <form onSubmit={verify} className="flex flex-col gap-4">
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="123456"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            autoFocus
+            className="field text-center font-mono text-2xl tracking-[0.4em]"
+          />
+
+          {devCode && (
+            <div className="rounded-xl border border-warning/30 bg-warning/[.08] p-3 text-center text-[13px] text-[#F5D08C]">
+              Test rejimi — kod: <span className="font-mono text-base font-bold">{devCode}</span>
+            </div>
+          )}
+
+          <button type="submit" disabled={busy} className="btn-primary mt-1 flex items-center justify-center py-4">
+            {busy ? <Spinner size={18} /> : 'Tasdiqlash'}
+          </button>
+
+          <button
+            type="button"
+            onClick={resend}
+            disabled={busy}
+            className="text-sm font-semibold text-muted hover:text-brand"
+          >
+            Kod kelmadimi? Qayta yuborish
+          </button>
+        </form>
+      </AuthShell>
+    )
+  }
+
+  // ── 1-bosqich: forma ────────────────────────────────────────────────────
   return (
     <AuthShell
       title="Ro'yxatdan o'tish"
-      subtitle="Bir daqiqada hisob oching va escrow himoyasi bilan savdo qiling."
+      subtitle="Bepul hisob oching va o'yin akkauntlari savdosini boshlang."
       footer={
         <>
           Hisobingiz bormi?{' '}
